@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render
+from django.http import JsonResponse, HttpResponseRedirect
 
 
 def index(request):
-    return render(request, 'login.html')
+    logined = request.session.get('user_id', None)
+    if logined is None:
+        return HttpResponseRedirect('/login')
+    return render(request, 'index.html')
 
-
-def login():
-    return render(request, 'login.html')

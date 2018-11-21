@@ -67,7 +67,7 @@
             }
 
             $.ajax({
-                url: "",
+                url: "{% url 'backend:' %}",
                 type: 'POST',
                 data: $("form").serializeArray(),
                 success: function (result) {
