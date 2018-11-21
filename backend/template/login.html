@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+</head>
+<body>
+    <div class="main">
+        <form>
+            <div class="title">
+                <h3>爬虫管理系统</h3>
+                <h5>——SixgodIMiss</h5>
+            </div>
+            <div class="form-group">
+                <label for="name">用户名</label>
+                <input type="text" class="form-control key-down" id="name" placeholder="Username" name="name">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control key-down" id="password" placeholder="Password" name="password">
+            </div>
+            <div class="input-error"></div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="remember"> 记住我
+                </label>
+            </div>
+            <a class="btn btn-default" id="submit">登录</a>
+        </form>
+    </div>
+</body>
+
+<script type="text/javascript" src="{% static 'jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var win_h = $(window).height();
+        var main_h = $(".main").outerHeight();
+        var diff = (win_h-main_h)/2;
+        $("body").css('padding-top', diff-10);
+
+        $("#submit").click(function () {
+            checkLogin();
+        });
+
+        // press Enter
+        $("input[class='form-control key-down']").keypress(function (event) {
+            if (13 == event.which) {
+                checkLogin();
+            }
+        });
+
+        function checkLogin() {
+            $(".input-error").empty();
+            var name = $.trim($("#name").val());
+            var pwd = $.trim($("#password").val());
+            // check input
+            if (!name || !pwd) {
+                $(".input-error").append('* 用户名或密码不能为空');
+                $("body").animate({
+                    'padding-top': diff-15
+                }, 100);
+                return false;
+            }
+
+            $.ajax({
+                url: "",
+                type: 'POST',
+                data: $("form").serializeArray(),
+                success: function (result) {
+                    if (result.status) {
+                        window.location.href = "";
+                    } else {
+                        switch (result.msg){
+                            case 1:
+                                $(".input-error").append('* 用户名或密码不能为空');
+                                break;
+                            case 2:
+                            case 3:
+                                $(".input-error").append('* 用户名或密码错误');
+                                break;
+                        }
+
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+</html>

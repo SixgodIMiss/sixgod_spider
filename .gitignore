@@ -2,6 +2,8 @@
 .idea
 .idea/
 
-db.sqlite3
+sixgod_db
 
 *.pyc
+
+sixgod_spider/settings.py
