@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
-from view import spiderView, userView
+from backend.views import spiderView, userView
 
 backend_urlpatterns = [
     url(r'^$', spiderView.index, name='index'),
