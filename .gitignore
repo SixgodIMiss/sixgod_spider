@@ -7,3 +7,5 @@ sixgod_db
 *.pyc
 
 sixgod_spider/settings.py
+
+uwsgi.ini
