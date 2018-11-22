@@ -10,6 +10,7 @@
     <script type="text/javascript" src="{% static 'jQuery.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'echarts.common.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'GridManager/js/gm.js' %}"></script>
     <script type="text/javascript" src="{% static 'layer/layer.js' %}"></script>
 
 
@@ -18,3 +19,13 @@
 {#    <link rel="stylesheet" href="{% static 'VerticalMenu/VerticalMenu.css' %}">#}
 </head>
 <body>
+<div class="container">
+    <div class="header">
+        <div class="pull-left">
+            <h2 id="home" style="cursor: pointer;">爬虫应用管理系统</h2>
+        </div>
+        <div class="pull-right login-register">
+            {{ request.session.user_name }} | <a href="">退出</a>
+        </div>
+    </div>
+    <hr/>

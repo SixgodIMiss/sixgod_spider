@@ -1,0 +1,133 @@
+{% load staticfiles %}
+{% include 'header.html' %}
+<style type="text/css">
+    .modal {
+        padding: 100px auto;
+    }
+    .modal .modal-header {
+        text-align: center;
+    }
+    .modal textarea {
+        width: 568px;
+        max-width: 568px;
+        height: 75px;
+    }
+</style>
+
+<div class="center">
+    <div class="main">
+        <a href="javascript:history.go(-1);" class="back">返回上一步</a>
+        <h3 style="text-align: center">应用配置</h3>
+        <div class="form">
+            <h4>名称</h4>
+            <div class="form-group">
+                <input type="text" id="name" placeholder="描述或名称">
+            </div>
+            <div class="form-group" id="area-select">
+                <h4>地区</h4>
+            </div>
+            <br/>
+            <button class="btn btn-primary next" id="save">保存</button>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
+
+<script type="text/javascript" src="{% static 'js/area.js' %}"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        // 初始化省市
+        var area = areaClass;
+        area.father = $("#area-select");
+        area.init("{% static 'json/area.json' %}");
+
+        // 作修改
+        let up = '创建';
+        {% if origin %}
+            up = '修改';
+            var origin = {};
+            var setSelect = function () {
+                    origin.id = '{{ origin.id }}';
+                    origin.area = '{{ origin.area }}'.split('-');
+                if (!$.isEmptyObject(origin)) {
+                    $("#s_province").val(origin.area[0]);
+                    area.change(1);
+                    if (typeof origin.area[1] != 'undefined' && origin.area[1] != '') {
+                        $("#s_city").val(origin.area[1]);
+                    }
+                    area.change(2);
+                    if (typeof origin.area[2] != 'undefined' && origin.area[2] != '') {
+                        $("#s_county").val(origin.area[2]);
+                    }
+                }
+            };
+            area.last = setSelect;
+
+            $("input[type=checkbox]").each(function () {
+                if ($(this).attr('name') == '{{ origin.field }}') {
+                    $(this).attr('checked', 'checked');
+                }
+            });
+        {% endif %}
+
+
+        $("#save").click(function () {
+            // 检测名
+            var name = $.trim($('#name').val());
+            if (!name) {
+                layer.alert('填上名称');
+                return false;
+            }
+
+            // 检测地区
+            var province = $("#s_province").val();
+            var city = $("#s_city").val();
+            var county = $("#s_county").val();
+            if (!province || province == '') {
+                layer.alert('至少选择一个省份');
+                return false;
+            } else if (!city || city == '') {
+                layer.alert('至少选择一个地级市');
+                return false;
+            } else if (!county || county == '') {
+                layer.alert('至少选择一个区县');
+                return false;
+            }
+
+            var handle = '';
+            if (up == '修改') {
+                handle = '修改为';
+            } else {
+                handle = '创建';
+            }
+
+            layer.confirm('确认'+handle+'爬取 '+province+city+county +'的应用？', {
+                time: 0 //不自动关闭
+                ,btn: ['是', '否']
+                ,yes: function(index){
+                    layer.close(index);
+                    $.ajax({
+                        'url': "{% url 'crawlerConfig' %}",
+                        'async': true,
+                        'type': 'POST',
+                        'data': {
+                            up: up,
+                            config_id: '{{ origin.id }}',
+                            province: province,
+                            city: city,
+                            county: county
+                        },
+                        'success': function (result) {
+                            if (result['success']) {
+                                window.location.href = '/index';
+                            } else {
+                                layer.alert(result['msg']);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>

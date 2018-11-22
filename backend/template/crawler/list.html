@@ -1,0 +1,58 @@
+{% load staticfiles %}
+{% include 'header.html' %}
+
+<div class="center">
+    <div class="main">
+        <h3>爬虫应用
+            <a class="btn btn-primary" style="margin: 10px" href="{% url 'crawlerConfig' %}?&type=create">
+                <i class="fa fa-plus"></i> 创建
+            </a>
+        </h3>
+        <div class="data-list">
+            <div style="padding: 20px 10px;">
+                <div class="search-area">
+                    <div class="sa-ele">
+                        <label class="se-title">创建者:</label>
+                        <input class="se-con" name="name"/>
+                    </div>
+                    <div class="sa-ele">
+                        <button class="search-action">搜索</button>
+                    </div>
+                    <div class="sa-ele">
+                        <select name="run-status" id="run-status">
+                            <option value="0">全部</option>
+                            <option value="1">运行中</option>
+                            <option value="2">停止</option>
+                        </select>
+                    </div>
+                </div>
+                <table grid-manager="spider-list"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var table = document.querySelector('table[grid-manager="spider-list"]');
+        table.GM({
+            ajax_data: "{% url 'crawlerListAjax' %}"
+            ,ajax_type: 'POST'
+            ,query: {pluginId: 1}
+            ,columnData: [
+                {
+                    key: 'name',
+                    text: '名称'
+                },{
+                    key: 'info',
+                    text: '使用说明'
+                },{
+                    key: 'url',
+                    text: 'url'
+                }
+            ]
+        })
+    });
+</script>

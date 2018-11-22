@@ -72,7 +72,7 @@
                 data: $("form").serializeArray(),
                 success: function (result) {
                     if (result.status) {
-                        window.location.href = "";
+                        window.location.href = "{% url 'index' %}";
                     } else {
                         switch (result.msg){
                             case 1:
