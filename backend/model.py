@@ -18,7 +18,7 @@ class User(models.Model):
 class CrawlerConfig(models.Model):
     id = models.Index
     name = models.CharField('爬虫应用名')
-    user_id = models.ForeignKey(User)  # 创建者
+    user = models.ForeignKey(User)  # 创建者
     area = models.CharField('地区')
     spiders = models.CharField('用到的爬虫程序ID')
     create_time = models.DateTimeField('创建时间')

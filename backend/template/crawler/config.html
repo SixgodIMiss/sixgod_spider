@@ -43,7 +43,7 @@
         area.init("{% static 'json/area.json' %}");
 
         // 作修改
-        let up = '创建';
+        var up = '创建';
         {% if origin %}
             up = '修改';
             var origin = {};
@@ -94,32 +94,31 @@
                 layer.alert('至少选择一个区县');
                 return false;
             }
+            var area = province+'-'+city+'-'+county;
 
             var handle = '';
-            if (up == '修改') {
+            if (up == 'create') {
                 handle = '修改为';
             } else {
                 handle = '创建';
             }
 
-            layer.confirm('确认'+handle+'爬取 '+province+city+county +'的应用？', {
+            layer.confirm('确认'+handle+'爬取 '+ area +' 的应用？', {
                 time: 0 //不自动关闭
                 ,btn: ['是', '否']
                 ,yes: function(index){
                     layer.close(index);
                     $.ajax({
-                        'url': "{% url 'crawlerConfig' %}",
+                        'url': "{% url 'saveConfig' %}",
                         'async': true,
                         'type': 'POST',
                         'data': {
-                            up: up,
-                            config_id: '{{ origin.id }}',
-                            province: province,
-                            city: city,
-                            county: county
+                            crawler_id: '{{ origin.id }}',
+                            name: name,
+                            area: area
                         },
                         'success': function (result) {
-                            if (result['success']) {
+                            if (result['status']) {
                                 window.location.href = '/index';
                             } else {
                                 layer.alert(result['msg']);

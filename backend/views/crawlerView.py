@@ -5,6 +5,7 @@ from backend.views import userView
 from backend.models import crawlerModel
 
 
+# 首页
 def index(request):
     logined = request.session.get('user_id', None)
     if logined is None:
@@ -12,22 +13,37 @@ def index(request):
     return render(request, 'crawler/list.html')
 
 
+# 用户爬虫应用列表
 def crawlerList(request):
     user_id = userView.checkLogin(request)
-    result = crawlerModel.crawlerConfig(1)
-    return JsonResponse({'uid': result})
+    params = {
+        'user_id': user_id,
+        'page': request.POST.get('page', 1)
+    }
+    result = crawlerModel.crawlerList(params)
+    return JsonResponse(result)
 
 
+# 应用配置页
 def crawlerConfig(request):
     user_id = userView.checkLogin(request)
-    post = request.POST
-    crawler_id = post.get('crawler_id', None)
-    if crawler_id is None or crawler_id == '':
-        return render(request, 'crawler/config.html', {})
-    else:
-        if post.get('name', None) is None or post.get('area', None) is None:
-            return render(request, 'error.html', {'error': '填写内容有误，请重填'})
-        post['user_id'] = user_id
+    crawler_id = request.GET.get('crawler_id', None)
+    result = {}
+    if crawler_id is not None:
+        result = crawlerModel.crawlerConfig(crawler_id=crawler_id, user_id=user_id)
+    return render(request, 'crawler/config.html', result)
 
-        crawlerModel.createCrawler(post)
-        return render(request, 'index.html', {})
+
+# 保存配置
+def saveConfig(request):
+    post = request.POST
+    user_id = userView.checkLogin(request)
+
+    # 不传ID就凉
+    if post.get('name', None) is None or post.get('area', None) is None:
+        result = 'error'
+    else:
+        post.user_id = user_id
+        result = crawlerModel.saveCrawler(post)
+    return JsonResponse({'status': result})
+

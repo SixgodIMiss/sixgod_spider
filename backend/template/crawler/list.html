@@ -4,7 +4,7 @@
 <div class="center">
     <div class="main">
         <h3>爬虫应用
-            <a class="btn btn-primary" style="margin: 10px" href="{% url 'crawlerConfig' %}?&type=create">
+            <a class="btn btn-primary" style="margin: 10px" href="{% url 'crawlerConfig' %}">
                 <i class="fa fa-plus"></i> 创建
             </a>
         </h3>
@@ -38,7 +38,7 @@
     $(document).ready(function () {
         var table = document.querySelector('table[grid-manager="spider-list"]');
         table.GM({
-            ajax_data: "{% url 'crawlerListAjax' %}"
+            ajax_data: "{% url 'crawlerList' %}"
             ,ajax_type: 'POST'
             ,query: {pluginId: 1}
             ,columnData: [
@@ -46,11 +46,8 @@
                     key: 'name',
                     text: '名称'
                 },{
-                    key: 'info',
-                    text: '使用说明'
-                },{
-                    key: 'url',
-                    text: 'url'
+                    key: 'user',
+                    text: '创建者'
                 }
             ]
         })
