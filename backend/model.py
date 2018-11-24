@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.db import models
+import datetime
 
 
 # 用户
@@ -8,7 +9,7 @@ class User(models.Model):
     name = models.CharField('名字', max_length=16)
     password = models.CharField('密码', max_length=32)
     auth = models.IntegerField('权限', max_length=1)
-    register_time = models.DateTimeField('注册时间').auto_now_add
+    register_time = models.DateTimeField('注册时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     class Meta:
         db_table = 'user'
@@ -21,8 +22,8 @@ class CrawlerConfig(models.Model):
     user = models.ForeignKey(User)  # 创建者
     area = models.CharField('地区')
     spiders = models.CharField('用到的爬虫程序ID')
-    create_time = models.DateTimeField('创建时间')
-    update_time = models.DateTimeField('更新时间')
+    create_time = models.DateTimeField('创建时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    update_time = models.DateTimeField('更新时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     class Meta:
         db_table = 'crawler_config'

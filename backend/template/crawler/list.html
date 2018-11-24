@@ -1,7 +1,16 @@
 {% load staticfiles %}
 {% include 'header.html' %}
+<style type="text/css">
+    .operate {
+        padding: 0 5px;
+    }
+    .operate button {
+        margin-right: 5px;
+    }
+</style>
 
 <div class="center">
+    {% include 'nav.html' %}
     <div class="main">
         <h3>爬虫应用
             <a class="btn btn-primary" style="margin: 10px" href="{% url 'crawlerConfig' %}">
@@ -12,8 +21,7 @@
             <div style="padding: 20px 10px;">
                 <div class="search-area">
                     <div class="sa-ele">
-                        <label class="se-title">创建者:</label>
-                        <input class="se-con" name="name"/>
+                        <input class="se-con" name="name" placeholder="应用"/>
                     </div>
                     <div class="sa-ele">
                         <button class="search-action">搜索</button>
@@ -41,15 +49,102 @@
             ajax_data: "{% url 'crawlerList' %}"
             ,ajax_type: 'POST'
             ,query: {pluginId: 1}
+            ,supportAjaxPage: true
             ,columnData: [
                 {
                     key: 'name',
-                    text: '名称'
-                },{
+                    text: '名称',
+                    width: '200px',
+                    template: function (nodeData, rowData) {
+                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
+                    }
+                },
+                {
+                    key: 'status',
+                    text: '状态',
+                    width: '60px',
+                    align: 'center',
+                    template: function (nodeData, rowData) {
+                        var status = '停止';
+                        return '<span style="margin-left: 5px; color: #999;">'+status+'</span>';
+                    }
+                },
+                {
+                    key: 'area',
+                    text: '地区',
+                    width: '150px',
+                    align: 'center',
+                    template: function (nodeData, rowData) {
+                        return '<span style="margin-left: 5px;">'+rowData.area+'</span>';
+                    }
+                },
+                {
                     key: 'user',
-                    text: '创建者'
-                }
+                    text: '创建者',
+                    align: 'center',
+                    width: '100px'
+                },
+                {
+                    key: 'create_time',
+                    text: '创建时间',
+                    align: 'center',
+                    width: '150px'
+                },
+                {
+                    key: 'operate',
+                    text: '操作',
+                    template: function (nodeData, rowData) {
+                        var dom = '<div class="operate" data-id="'+rowData.id+'">';
+                        if (rowData.updated == 3) {
+                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
+                            '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
+                            '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
+                            '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
+                            '<button class="stopping btn btn-warning btn-sm hide">停止中</button>' +
+                            '<button class="updated btn btn-info btn-sm" disabled>更新中</button>';
+                        } else if (rowData.status == 1) {
+                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
+                            '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
+                            '<button class="run btn btn-success btn-sm " disabled>运行中</button>' +
+                            '<button class="stop btn btn-warning btn-sm ">停止</button>' +
+                            '<button class="stopping btn btn-warning btn-sm hide">停止中</button>' +
+                            '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
+                        } else {
+                            dom += '<button class="start btn btn-primary btn-sm">启动</button>' +
+                            '<button class="delete btn btn-danger btn-sm">删除</button>' +
+                            '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
+                            '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
+                            '<button class="stopping btn btn-warning btn-sm hide">停止中</button>' +
+                            '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
+                        }
+                        dom += '</div>';
+                        return dom;
+                    }
+                },
             ]
-        })
+        });
+
+
+
+        var start = function (selector) {
+            var parent = $(selector).parent();
+            var id = parent.attr('data-id');
+
+            layer.confirm('请先确认最近一次应用爬取的数据无误', {
+                time: 0 //不自动关闭
+                , btn: ['启动', '取消']
+                , yes: function (index) {
+                    current.push(id);
+
+                    $(selector).addClass('hide');
+                    parent.find(".delete").addClass('hide');
+                    parent.find(".run").removeClass('hide');
+                    parent.find(".stop").removeClass('hide');
+                    activeAjax(1, id);
+
+                    layer.close(index);
+                }
+            });
+        }
     });
 </script>

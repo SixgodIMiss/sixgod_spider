@@ -9,6 +9,7 @@ backend_urlpatterns = [
     url(r'^signIn/$', userView.signIn, name='signIn'),
     url(r'^crawlerList/$', crawlerView.crawlerList, name='crawlerList'),
     url(r'^crawlerConfig/$', crawlerView.crawlerConfig, name='crawlerConfig'),
-    url(r'^saveConfig/$', crawlerView.saveConfig, name='saveConfig')
+    url(r'^saveConfig/$', crawlerView.saveConfig, name='saveConfig'),
+    url(r'^crawlerInfo/$', crawlerView.saveConfig, name='crawlerInfo'),
 ]
 

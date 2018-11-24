@@ -9,6 +9,7 @@ td button { width: 60px; }
     padding-top: 15px;
 }
 .header {
+    padding: 5px 0 10px 0;
     overflow: hidden;
     color: #FFFFFF;
     position: relative;
