@@ -9,3 +9,5 @@ sixgod_db
 sixgod_spider/settings.py
 
 uwsgi.ini
+
+spider/spider/mysql/mysqlConfig.py

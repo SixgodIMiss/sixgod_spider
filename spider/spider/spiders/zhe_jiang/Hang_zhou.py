@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
+import os
+import sys
 import scrapy
 from scrapy.http import Request
 import json
 
+# 导入basic
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from basicSpider import BasicSpider
 
-class ProjectSpider(scrapy.spiders.Spider):
+
+class ProjectSpider(BasicSpider):
     name = 'Hangzhou'
     allowed_domains = ['hzctc.cn']
     start_urls = [
@@ -68,14 +74,33 @@ class ProjectSpider(scrapy.spiders.Spider):
         for row in rows:
             rid = row['ID']
             link = base_link + rid + '&IsInner=0&ModuleID=28'
-            yield Request(url=link, callback=self.get_info)
+            yield Request(url=link, callback=self.get_info, encoding='utf-8')
 
     def get_info(self, response):
-        project = response.xpath('/html/body/div[3]/div[2]/div[1]/text()[1]').extract().str_replace('\r\n', '').str_replace(' ', '')
-        date = response.xpath('/html/body/div[3]/div[2]/div[1]/text()[2]').extract().str_replace('\r\n', '').str_replace(' ', '')
-        company = response.xpath('//*[@id="lb_zbddw"]').extract()
-        architecter = response.xpath('//*[@id="lb_xmjl"]').extract()
-        price = response.xpath('//*[@id="lb_zbjg"]').extract()
+        get_project = response.xpath('/html/body/div[3]/div[2]/div[1]/text()[1]').extract()
+        get_date = response.xpath('/html/body/div[3]/div[2]/div[1]/text()[2]').extract()
+        get_company = response.xpath('//*[@id="lb_zbddw"]/text()').extract()
+        get_architecter = response.xpath('//*[@id="lb_xmjl"]/text()').extract()
+        get_price = response.xpath('//*[@id="lb_zbjg"]/text()').extract()
 
+        # 中标公司
+        company = get_company[0].replace('\r\n', '').replace(' ', '')
+        # 中标项目
+        project = get_project[0].replace('\r\n', '').replace(' ', '')
+        # 中标日期
+        date = get_date[0].replace('\r\n', '').replace(' ', '')
+        # 中标金额
+        price = get_price[0].replace('\r\n', '').replace(' ', '')
+        price = price.replace('万元', '') if '万元' in price else int(price.replace('元'))/10000
+        # 建造师
+        architecter = get_architecter[0].replace('\r\n', '').replace(' ', '')
 
+        result = {
+            'company': company,
+            'project': project,
+            'date': date,
+            'price': price,
+            'architecter': architecter
+        }
+        self.insertProject(result)
 

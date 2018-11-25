@@ -14,8 +14,9 @@ class SpiderItem(scrapy.Item):
     pass
 
 
-# 中标项目
+# 中标公告
 class ProjectItem(scrapy.Item):
+    company = scrapy.Field()
     project = scrapy.Field()  # 项目
     architecter = scrapy.Field()  # 建造师
     date = scrapy.Field()  # 中标日期
