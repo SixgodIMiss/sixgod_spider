@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import sys
 import scrapy
 from scrapy.http import Request
 import json
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 
 # 导入basic
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -11,7 +15,7 @@ from basicSpider import BasicSpider
 
 
 class ProjectSpider(BasicSpider):
-    name = 'Hangzhou'
+    name = 'Zhejiang_Hangzhou'
     allowed_domains = ['hzctc.cn']
     start_urls = [
         'http://www.hzctc.cn/SecondPage/GetNotice'
@@ -77,23 +81,24 @@ class ProjectSpider(BasicSpider):
             yield Request(url=link, callback=self.get_info, encoding='utf-8')
 
     def get_info(self, response):
-        get_project = response.xpath('/html/body/div[3]/div[2]/div[1]/text()[1]').extract()
-        get_date = response.xpath('/html/body/div[3]/div[2]/div[1]/text()[2]').extract()
-        get_company = response.xpath('//*[@id="lb_zbddw"]/text()').extract()
-        get_architecter = response.xpath('//*[@id="lb_xmjl"]/text()').extract()
-        get_price = response.xpath('//*[@id="lb_zbjg"]/text()').extract()
+        get_project = response.xpath('//div[@class="MainList"]/div[@class="AfficheTitle"]/text()[1]').extract()
+        get_date = response.xpath('//div[@class="MainList"]/div[@class="AfficheTitle"]/text()[2]').extract()
+        get_company = response.xpath('//span[@id="lb_zbddw"]/text()').extract()
+        get_architecter = response.xpath('//span[@id="lb_xmjl"]/text()').extract()
+        get_price = response.xpath('//span[@id="lb_zbjg"]/text()').extract()
 
         # 中标公司
-        company = get_company[0].replace('\r\n', '').replace(' ', '')
+        company = get_company[0].replace('\r\n', '').replace(' ', '') if len(get_company) > 0 else ''
         # 中标项目
-        project = get_project[0].replace('\r\n', '').replace(' ', '')
+        project = get_project[0].replace('\r\n', '').replace(' ', '') if len(get_project) > 0 else ''
         # 中标日期
-        date = get_date[0].replace('\r\n', '').replace(' ', '')
+        date = get_date[0].replace('\r\n', '').replace(' ', '') if len(get_date) > 0 else ''
         # 中标金额
-        price = get_price[0].replace('\r\n', '').replace(' ', '')
-        price = price.replace('万元', '') if '万元' in price else int(price.replace('元'))/10000
+        price = get_price[0].replace('\r\n', '').replace(' ', '') if len(get_price) > 0 else '0.0000'
+        price = price.replace(u'万元', '') if u'万元' in price else u'0.0000'
+
         # 建造师
-        architecter = get_architecter[0].replace('\r\n', '').replace(' ', '')
+        architecter = get_architecter[0].replace('\r\n', '').replace(' ', '') if len(get_architecter) > 0 else ''
 
         result = {
             'company': company,
@@ -104,3 +109,4 @@ class ProjectSpider(BasicSpider):
         }
         self.insertProject(result)
 
+        return True

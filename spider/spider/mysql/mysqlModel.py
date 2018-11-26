@@ -4,9 +4,10 @@ import MySQLdb
 from MySQLdb.cursors import DictCursor
 from DBUtils.PooledDB import PooledDB
 
-# 导入mysqlConfig
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__))+'/mysql'))
+sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__))+'/log'))
 import mysqlConfig
+from log import Log
 
 
 class MysqlModel(object):
@@ -14,11 +15,15 @@ class MysqlModel(object):
     _config = ''
     _conn = None  # 当前数据库连接
     _cursor = None  # 当前数据库游标
+    _log = None
 
     def __init__(self, db):
         self._config = db if db is not None else 'master'
         self._conn = self.getConn(db)
         self._cursor = self._conn.cursor()
+
+        if self._log is None:
+            self._log = Log()
 
     """
         @summary: 静态方法，从连接池中取出连接
@@ -41,10 +46,16 @@ class MysqlModel(object):
         @return: result list(字典对象)/boolean 查询到的结果集
     """
     def query(self, sql, params=None):
-        if params is None:
-            result = self._cursor.execute(sql)
-        else:
-            result = self._cursor.execute(sql, params)
+        result = False
+        try:
+            if params is None:
+                result = self._cursor.execute(sql)
+            else:
+                result = self._cursor.execute(sql, params)
+
+            self._conn.commit()
+        except MySQLdb.MySQLError as e:
+            self._log.write('error', {'reason': e})
         return result
 
     def getAll(self, sql, params=None):
@@ -69,22 +80,14 @@ class MysqlModel(object):
         @param value: 要插入的记录数据tuple/list
         @return: 受影响的行数
     """
-    def insertOne(self, sql, value):
+    def insert(self, sql, value):
+        result = 0
         try:
-            self._cursor.execute(sql, value)
-        except Exception as e:
-            error = e.args
-        return self._cursor.execute("SELECT @@IDENTITY AS id")
-
-    """
-        @summary: 向数据表插入多条记录
-        @param sql: 要插入的SQL格式
-        @param values: 要插入的记录数据tuple(tuple)/list[list]
-        @return: count 受影响的行数
-    """
-    def insertMany(self, sql, values):
-        count = self._cursor.executemany(sql, values)
-        return count
+            result = self._cursor.execute(sql, value)
+            self._conn.commit()
+        except MySQLdb.MySQLError as e:
+            self._log.write('error', {'reason': e})
+        return result
 
     def update(self, sql, param=None):
         return self.query(sql, param)
