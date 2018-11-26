@@ -14,7 +14,6 @@ class User(models.Model):
     class Meta:
         db_table = 'user'
 
-
 # 应用配置
 class CrawlerConfig(models.Model):
     id = models.Index
@@ -28,11 +27,23 @@ class CrawlerConfig(models.Model):
     class Meta:
         db_table = 'crawler_config'
 
+# 运行任务
+class Task(models.Model):
+    id = models.Index
+    status = models.CharField('运行状态')  # stop stopping running starting
+    start = models.DateTimeField('启动时间')  # 上一次
+    end = models.DateTimeField('关闭时间')  # 上一次
+    pid = models.IntegerField('进程ID')
+    create_time = models.DateTimeField('创建时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+    class Meta:
+        db_table = 'task'
 
 # 爬虫应用
 class Crawler(models.Model):
     id = models.Index
     config = models.ForeignKey(CrawlerConfig)  # 配置记录ID
+    task = models.ForeignKey(Task)  # 运行任务
     valid = models.IntegerField(default=1)  # 是否1有效, 2无
     create_time = models.DateTimeField('创建时间')
 
@@ -40,14 +51,4 @@ class Crawler(models.Model):
         db_table = 'crawler'
 
 
-# 运行任务
-class Task(models.Model):
-    id = models.Index
-    crawler_id = models.ForeignKey(Crawler)  # 爬虫应用
-    status = models.CharField('运行状态')  # stop stopping running starting
-    start = models.DateTimeField('启动时间')
-    end = models.DateTimeField('关闭时间')
-    pid = models.IntegerField('进程ID')
 
-    class Meta:
-        db_table = 'task'

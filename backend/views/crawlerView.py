@@ -46,4 +46,3 @@ def saveConfig(request):
         post.user_id = user_id
         result = crawlerModel.saveCrawler(post)
     return JsonResponse({'status': result})
-

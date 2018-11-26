@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 from backend.model import Crawler, CrawlerConfig, Task
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import serializers
@@ -12,7 +13,9 @@ def crawlerList(params):
 
     # 查询
     lists = Crawler.objects.order_by('-id').filter(config__user=user_id, valid=1).values(
-        'id', 'config_id', 'config__name', 'config__area', 'valid', 'config__create_time', 'config__user__name')
+        'id', 'config_id', 'config__name', 'config__area', 'valid', 'config__create_time', 'config__user__name',
+        'task_id', 'task__status', 'task__start', 'task__end'
+    )
     # 分页
     paginator = Paginator(lists, 10)
     try:
@@ -36,7 +39,11 @@ def crawlerList(params):
             'name': item['config__name'],
             'user': item['config__user__name'],
             'area': item['config__area'],
-            'create_time': item['config__create_time']
+            'task_id': item['task_id'],
+            'status': item['task__status'],
+            'start': item['task__start'],
+            'end': item['task__end'],
+            'create_time': item['config__create_time'].strftime("%Y-%m-%d %H:%M:%S")
         })
     return result
 
@@ -68,7 +75,8 @@ def saveCrawler(params):
     try:
         if crawler_id is None or crawler_id == "":
             config = CrawlerConfig.objects.create(name=name, area=area, user_id=user_id)
-            Crawler.objects.create(config_id=config.id)
+            task = Task.objects.create(status='stop')
+            Crawler.objects.create(config_id=config.id, task_id=task.id)
         else:
             config_id = Crawler.objects.get(id=crawler_id).config_id
             CrawlerConfig.objects.filter(id=config_id).update(name=name, area=area)
