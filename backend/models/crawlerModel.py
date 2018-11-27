@@ -13,7 +13,8 @@ def crawlerList(params):
 
     # 查询
     lists = Crawler.objects.order_by('-id').filter(config__user=user_id, valid=1).values(
-        'id', 'config_id', 'config__name', 'config__area', 'valid', 'config__create_time', 'config__user__name',
+        'id', 'valid',
+        'config_id', 'config__name', 'config__province', 'config__city', 'config__create_time', 'config__user__name',
         'task_id', 'task__status', 'task__start', 'task__end'
     )
     # 分页
@@ -38,7 +39,8 @@ def crawlerList(params):
             'config_id': item['config_id'],
             'name': item['config__name'],
             'user': item['config__user__name'],
-            'area': item['config__area'],
+            'province': item['config__province'],
+            'city': item['config__city'],
             'task_id': item['task_id'],
             'status': item['task__status'],
             'start': item['task__start'],
@@ -57,7 +59,8 @@ def crawlerConfig(crawler_id, user_id):
             result = {
                 'name': item.config.name,
                 'user': item.config.user.name,
-                'area': item.config.area,
+                'province': item.config.province,
+                'city': item.config.city,
                 'create_time': item.create_time
             }
     except Exception as e:
@@ -69,17 +72,27 @@ def crawlerConfig(crawler_id, user_id):
 def saveCrawler(params):
     name = params['name']
     user_id = params.user_id
-    area = params['area']
+    province = params['province']
+    city = params['city']
     crawler_id = params.get('crawler_id', None)
 
     try:
         if crawler_id is None or crawler_id == "":
-            config = CrawlerConfig.objects.create(name=name, area=area, user_id=user_id)
+            config = CrawlerConfig.objects.create(name=name, province=province, city=city, user_id=user_id)
             task = Task.objects.create(status='stop')
             Crawler.objects.create(config_id=config.id, task_id=task.id)
         else:
             config_id = Crawler.objects.get(id=crawler_id).config_id
-            CrawlerConfig.objects.filter(id=config_id).update(name=name, area=area)
+            CrawlerConfig.objects.filter(id=config_id).update(name=name, province=province, city=city)
     except Exception as e:
         return False
     return True
+
+
+# 检测爬虫以及返回爬虫运行状态
+def checkUserCrawler(crawler_id, user_id):
+    try:
+        check = Crawler.objects.get(id=crawler_id, config__user_id=user_id)
+    except Exception as e:
+        check = False
+    return check

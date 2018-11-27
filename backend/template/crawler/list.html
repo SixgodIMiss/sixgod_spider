@@ -34,7 +34,7 @@
                         </select>
                     </div>
                 </div>
-                <table grid-manager="spider-list"></table>
+                <table id="crawler-list" grid-manager="crawler-list"></table>
             </div>
         </div>
     </div>
@@ -44,20 +44,21 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        let table = document.querySelector('table[grid-manager="spider-list"]');
-        {#table.GM('clear');#}
-        table.GM({
+        var crawler = $('#crawler-list');
+        {#crawler.GM('clear');#}
+        crawler.GM({
             ajax_data: "{% url 'crawlerList' %}"
             ,ajax_type: 'POST'
             ,query: {pluginId: 1}
             ,supportAjaxPage: true
+            ,supportMenu: false
             ,columnData: [
                 {
                     key: 'name',
                     text: '名称',
-                    width: '30%',
+                    width: '250px',
                     template: function (nodeData, rowData) {
-                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
+                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" title="查看详情" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
                     }
                 },
                 {
@@ -72,23 +73,23 @@
                 {
                     key: 'area',
                     text: '地区',
-                    width: '20%',
+                    width: '15%',
                     align: 'center',
                     template: function (nodeData, rowData) {
-                        return '<span style="margin-left: 5px;">'+rowData.area+'</span>';
+                        return '<span style="margin-left: 5px;">'+rowData.province+'-'+rowData.city+'</span>';
                     }
                 },
                 {
                     key: 'user',
                     text: '创建者',
                     align: 'center',
-                    width: '8%'
+                    width: '10%'
                 },
                 {
                     key: 'create_time',
                     text: '创建时间',
                     align: 'center',
-                    width: '12%'
+                    width: '15%'
                 },
                 {
                     key: 'operate',
@@ -100,21 +101,21 @@
                             '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
                             '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
                             '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide">停止中</button>' +
+                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
                             '<button class="updated btn btn-info btn-sm" disabled>更新中</button>';
                         } else if (rowData.status == 1) {
                             dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
                             '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
                             '<button class="run btn btn-success btn-sm " disabled>运行中</button>' +
                             '<button class="stop btn btn-warning btn-sm ">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide">停止中</button>' +
+                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
                             '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
                         } else {
                             dom += '<button class="start btn btn-primary btn-sm">启动</button>' +
                             '<button class="delete btn btn-danger btn-sm">删除</button>' +
                             '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
                             '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide">停止中</button>' +
+                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
                             '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
                         }
                         dom += '</div>';
@@ -124,32 +125,92 @@
             ]
             ,ajax_success: function (response) {
                 $('.operate .start').click(function () {
-                    start($(this).parent('.operate');
+                    start($(this).parent('.operate'));
                 });
+                $('.operate .stop').click(function () {
+                    stop($(this).parent('.operate'));
+                });
+                $('.operate .delete').click(function () {
+                    del($(this).parent('.operate'));
+                });
+            }
+            ,requestHandler: function(request){
+                request.user = $("input[class='se-con']").val();
+                request.status = $("select[id='run-status']").val();
+                return request;
             }
         });
 
-        let start = function (selector) {
-            let parent = $(selector).parent();
-            let id = parent.attr('data-id');
+        var start = function (selector) {
+            var id = selector.attr('data-id');
+            var name = selector.parents('tr').find('td:eq(2)').text();
 
-            layer.confirm('请先确认最近一次应用爬取的数据无误', {
+            layer.confirm('确认<span style="text-decoration:underline">启动</span> <span style="color: blue">'+name+'</span> ?', {
                 time: 0 //不自动关闭
+                , title: '应用'
                 , btn: ['启动', '取消']
                 , yes: function (index) {
-                    current.push(id);
+                    selector.find('.start').addClass('hide');
+                    selector.find(".delete").addClass('hide');
+                    selector.find(".run").removeClass('hide');
+                    selector.find(".stop").removeClass('hide');
 
-                    $(selector).addClass('hide');
-                    parent.find(".delete").addClass('hide');
-                    parent.find(".run").removeClass('hide');
-                    parent.find(".stop").removeClass('hide');
-                    activeAjax(1, id);
+                    active(id, 'start');
 
                     layer.close(index);
                 }
             });
+        };
+        var stop = function (selector) {
+            var id = selector.attr('data-id');
+            var name = selector.parents('tr').find('td:eq(2)').text();
+
+            layer.confirm('确认<span style="text-decoration:underline">关闭</span> <span style="color: blue">'+name+'</span> ?', {
+                time: 0 //不自动关闭
+                , title: '应用'
+                , btn: ['关闭', '取消']
+                , yes: function (index) {
+                    selector.find('.stop').addClass('hide');
+                    selector.find(".run").addClass('hide');
+                    selector.find(".stopping").removeClass('hide');
+
+                    active(id, 'stop');
+
+                    layer.close(index);
+                }
+            });
+        };
+        var del = function (selector) {
+            var id = selector.attr('data-id');
+            var name = selector.parents('tr').find('td:eq(2)').text();
+
+            layer.confirm('确认<span style="text-decoration:underline">删除</span> <span style="color: blue">'+name+'</span> ?', {
+                time: 0 //不自动关闭
+                , title: '应用'
+                , btn: ['关闭', '取消']
+                , yes: function (index) {
+                    active(id, 'del');
+
+                    layer.close(index);
+                }
+            });
+        };
+        var active = function (id, active) {
+            $.ajax({
+                url: "{% url 'crawlerHandler' %}",
+                type: 'POST',
+                data: {
+                    id: id,
+                    active: active
+                },
+                success: function (response) {
+                    {#crawler.GM('refreshGrid');#}
+                    {#if (response.status == 'fail') {#}
+                    {#    layer.alert(response.active + '失败！');#}
+                    {#}#}
+                }
+            });
         }
-
-
+        
     });
 </script>

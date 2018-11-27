@@ -19,7 +19,8 @@ class CrawlerConfig(models.Model):
     id = models.Index
     name = models.CharField('爬虫应用名')
     user = models.ForeignKey(User)  # 创建者
-    area = models.CharField('地区')
+    province = models.CharField('省')
+    city = models.CharField('市')
     spiders = models.CharField('用到的爬虫程序ID')
     create_time = models.DateTimeField('创建时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     update_time = models.DateTimeField('更新时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -45,7 +46,7 @@ class Crawler(models.Model):
     config = models.ForeignKey(CrawlerConfig)  # 配置记录ID
     task = models.ForeignKey(Task)  # 运行任务
     valid = models.IntegerField(default=1)  # 是否1有效, 2无
-    create_time = models.DateTimeField('创建时间')
+    create_time = models.DateTimeField('创建时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     class Meta:
         db_table = 'crawler'

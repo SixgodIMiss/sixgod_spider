@@ -14,7 +14,7 @@ class BasicSpider(scrapy.Spider):
     log = None
     model = None
 
-    def __init__(self):
+    def __init__(self, crawler_id=0):
         if self.log is None:
                 self.log = Log()
 
