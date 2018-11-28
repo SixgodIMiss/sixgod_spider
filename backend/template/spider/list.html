@@ -1,37 +1,24 @@
 {% load staticfiles %}
 {% include 'header.html' %}
-<style type="text/css">
-    .operate {
-        padding-left: 10px;
-    }
-    .operate button {
-        margin-right: 5px;
-    }
-</style>
 
 <div class="center">
     {% include 'nav.html' %}
+
     <div class="main">
-        <h3>应用
-            <a class="btn btn-primary" style="margin: 10px" href="{% url 'crawlerConfig' %}">
+        <h3>程序
+            <a class="btn btn-primary" style="margin: 10px" href="{% url 'spiderConfig' %}">
                 <i class="fa fa-plus"></i> 创建
             </a>
         </h3>
+
         <div class="data-list">
             <div style="padding: 20px 10px;">
                 <div class="search-area">
                     <div class="sa-ele">
-                        <input class="se-con" name="name" placeholder="应用名称"/>
+                        <input class="se-con" name="name" placeholder="程序名称"/>
                     </div>
                     <div class="sa-ele">
                         <button class="search-action">搜索</button>
-                    </div>
-                    <div class="sa-ele">
-                        <select name="run-status" id="run-status">
-                            <option value="0">全部</option>
-                            <option value="running">运行中</option>
-                            <option value="stop">停止</option>
-                        </select>
                     </div>
                 </div>
                 <table id="crawler-list" grid-manager="crawler-list"></table>
@@ -47,9 +34,7 @@
         var crawler = $('#crawler-list');
         {#crawler.GM('clear');#}
         crawler.GM({
-            height: '500px'
-            ,pageSize: 20
-            ,ajax_data: "{% url 'crawlerList' %}"
+            ajax_data: "{% url 'spiderList' %}"
             ,ajax_type: 'POST'
             ,query: {pluginId: 1}
             ,supportAjaxPage: true
@@ -60,16 +45,7 @@
                     text: '名称',
                     width: '250px',
                     template: function (nodeData, rowData) {
-                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" title="查看详情" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
-                    }
-                },
-                {
-                    key: 'status',
-                    text: '状态',
-                    width: '5%',
-                    align: 'center',
-                    template: function (nodeData, rowData) {
-                        return '<span style="margin-left: 5px; color: #999;">'+rowData.status+'</span>';
+                        return '<span style="margin-left: 5px; font-size: 16px">'+rowData.name+'</span>';
                     }
                 },
                 {
@@ -86,6 +62,12 @@
                     text: '创建者',
                     align: 'center',
                     width: '10%'
+                },
+                {
+                    key: 'create_time',
+                    text: '创建时间',
+                    align: 'center',
+                    width: '15%'
                 },
                 {
                     key: 'create_time',
@@ -127,98 +109,20 @@
             ]
             ,ajax_success: function (response) {
                 $('.operate .start').click(function () {
-                    start($(this).parent('.operate'));
+                    {#start($(this).parent('.operate'));#}
                 });
                 $('.operate .stop').click(function () {
-                    stop($(this).parent('.operate'));
+                    {#stop($(this).parent('.operate'));#}
                 });
                 $('.operate .delete').click(function () {
-                    del($(this).parent('.operate'));
+                    {#del($(this).parent('.operate'));#}
                 });
             }
             ,requestHandler: function(request){
-                request.crawler_name = $("input[name='name']").val();
-                request.status = $("select[name='run-status']").val();
+                {#request.crawler_name = $("input[name='name']").val();#}
+                {#request.status = $("select[name='run-status']").val();#}
                 return request;
             }
-        });
-
-        var start = function (selector) {
-            var id = selector.attr('data-id');
-            var name = selector.parents('tr').find('td:eq(2)').text();
-
-            layer.confirm('确认<span style="text-decoration:underline">启动</span> <span style="color: blue">'+name+'</span> ?', {
-                time: 0 //不自动关闭
-                , title: '应用'
-                , btn: ['启动', '取消']
-                , yes: function (index) {
-                    selector.find('.start').addClass('hide');
-                    selector.find(".delete").addClass('hide');
-                    selector.find(".run").removeClass('hide');
-                    selector.find(".stop").removeClass('hide');
-
-                    active(id, 'start');
-
-                    layer.close(index);
-                }
-            });
-        };
-        var stop = function (selector) {
-            var id = selector.attr('data-id');
-            var name = selector.parents('tr').find('td:eq(2)').text();
-
-            layer.confirm('确认<span style="text-decoration:underline">关闭</span> <span style="color: blue">'+name+'</span> ?', {
-                time: 0 //不自动关闭
-                , title: '应用'
-                , btn: ['关闭', '取消']
-                , yes: function (index) {
-                    selector.find('.stop').addClass('hide');
-                    selector.find(".run").addClass('hide');
-                    selector.find(".stopping").removeClass('hide');
-
-                    active(id, 'stop');
-
-                    layer.close(index);
-                }
-            });
-        };
-        var del = function (selector) {
-            var id = selector.attr('data-id');
-            var name = selector.parents('tr').find('td:eq(2)').text();
-
-            layer.confirm('确认<span style="text-decoration:underline">删除</span> <span style="color: blue">'+name+'</span> ?', {
-                time: 0 //不自动关闭
-                , title: '应用'
-                , btn: ['关闭', '取消']
-                , yes: function (index) {
-                    active(id, 'del');
-
-                    layer.close(index);
-                }
-            });
-        };
-        var active = function (id, active) {
-            $.ajax({
-                url: "{% url 'crawlerHandler' %}",
-                type: 'POST',
-                data: {
-                    id: id,
-                    active: active
-                },
-                success: function (response) {
-                    {#crawler.GM('refreshGrid');#}
-                    {#if (response.status == 'fail') {#}
-                    {#    layer.alert(response.active + '失败！');#}
-                    {#}#}
-                }
-            });
-        }
-        
-        $('.search-action').click(function () {
-            crawler.GM('refreshGrid');
-        });
-        $('select[name="run-status"]').change(function () {
-            crawler.GM('refreshGrid');
         });
     });
 </script>

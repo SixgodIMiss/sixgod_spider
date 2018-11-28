@@ -29,9 +29,13 @@ def index(request):
 # 用户爬虫应用列表
 def crawlerList(request):
     user_id = userView.checkLogin(request)
+    post = request.POST
     params = {
         'user_id': user_id,
-        'page': request.POST.get('page', 1)
+        'page': int(post.get('cPage', 1)),
+        'size': int(post.get('pSize', 20)),
+        'name': str(post.get('crawler_name', None)),
+        'status': post.get('status', 0)
     }
     result = crawlerModel.crawlerList(params)
     return JsonResponse(result)
@@ -40,24 +44,44 @@ def crawlerList(request):
 # 应用配置页
 def crawlerConfig(request):
     user_id = userView.checkLogin(request)
-    crawler_id = request.GET.get('crawler_id', None)
-    result = {}
+    crawler_id = request.GET.get('id', None)
+    result = {
+        'active': 'create'
+    }
     if crawler_id is not None:
         result = crawlerModel.crawlerConfig(crawler_id=crawler_id, user_id=user_id)
+        result['active'] = 'update'
     return render(request, 'crawler/config.html', result)
 
 
-# 保存配置
-def saveConfig(request):
-    post = request.POST
+# 应用详情页
+def crawlerInfo(request):
     user_id = userView.checkLogin(request)
+    crawler_id = request.GET.get('id', None)
+    result = {}
+    if crawler_id is not None:
+        result = crawlerModel.crawlerConfig(crawler_id=crawler_id, user_id=user_id)
+
+    return render(request, 'crawler/info.html', result)
+
+
+# 保存配置
+def crawlerSave(request):
+    user_id = userView.checkLogin(request)
+    post = request.POST
+    params = {
+        'user_id': user_id,
+        'name': post.get('name', ''),
+        'province': post.get('province', ''),
+        'city': post.get('city', ''),
+        'crawler_id': post.get('id', '')
+    }
 
     # 不传ID就凉
-    if post.get('name', None) is None or post.get('province', None) is None or post.get('city', None) is None:
+    if params['crawler_id'] == '' or params['province'] == '' or params['city'] == '':
         result = 'error'
     else:
-        post.user_id = user_id
-        result = crawlerModel.saveCrawler(post)
+        result = crawlerModel.saveCrawler(params)
     return JsonResponse({'status': result})
 
 

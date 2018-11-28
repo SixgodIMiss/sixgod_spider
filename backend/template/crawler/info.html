@@ -1,0 +1,62 @@
+{% include "header.html" %}
+<style type="text/css">
+    .row {
+        padding: 20px 0;
+    }
+    h3 {
+        padding-left: 50px;
+    }
+</style>
+<div class="center">
+    {% include "nav.html" %}
+    <div class="main">
+        <a href="javascript:history.go(-1);" class="back">返回上一步</a>
+        <h3>配置详情</h3>
+        <div class="row">
+            <div class="col-md-3" style="text-align: right">创建者: </div>
+            <div class="col-md-8">{{ user }}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-3" style="text-align: right">地区: </div>
+            <div class="col-md-8">{{ province }}-{{ city }}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-3" style="text-align: right">爬虫程序: </div>
+            <div class="col-md-8">
+                {% for name in spiders %}
+                    <span style="padding-right: 10px;">{{ name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3" style="text-align: right">创建时间: </div>
+            <div class="col-md-8">{{ create_time|date:'Y-m-d H:i:s' }}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-3" style="text-align: right">更新时间: </div>
+            <div class="col-md-8">{{ update_time|date:'Y-m-d H:i:s' }}</div>
+        </div>
+        <div class="col-md-7 pull-right">
+            <a class="btn btn-primary" id="edit" href="{% url 'crawlerConfig' %}?&id={{ id }}">修改</a>
+        </div>
+    </div>
+</div>
+
+{% include "footer.html" %}
+
+{#<script type="text/javascript">#}
+{#    $("#edit").click(function () {#}
+{#        $.ajax({#}
+{#            url: "{% url 'crawlerConfig' %}",#}
+{#            type: "POST",#}
+{#            data: {ids: JSON.stringify(['{{ info.crawler_id }}'])},#}
+{#            success: function (data) {#}
+{#                if (data.result[0]['status'] == 2) {#}
+{#                    window.location.href = "{% url 'home:configOption' %}"+'?&type=2&id={{ info.id }}';#}
+{#                } else {#}
+{#                    layer.msg('爬虫还在运行中');#}
+{#                }#}
+{#            }#}
+{#        });#}
+{#    });#}
+{#</script>#}

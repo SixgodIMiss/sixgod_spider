@@ -51,5 +51,15 @@ class Crawler(models.Model):
     class Meta:
         db_table = 'crawler'
 
+# 爬虫程序
+class Spider(models.Model):
+    id = models.Index
+    name = models.CharField('程序名', max_length=64)
+    province = models.CharField('省', max_length=32)
+    city = models.CharField('市', max_length=32)
+    type = models.CharField('暂定', max_length=16)
+    create_time = models.DateTimeField(default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    update_time = models.DateTimeField(default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-
+    class Meta:
+        db_table = 'spider'

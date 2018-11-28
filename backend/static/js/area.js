@@ -10,8 +10,8 @@ var areaClass = {
 	// 初始化地区串联选择元素
 	initDom: function () {
 		this.father.append('<select name="province" id="s_province"></select>' +
-			'<select name="city" id="s_city"><option value="">地级市</option></select>' +
-			'<select name="county" id="s_county"> <option value="">区/县</option></select>');
+			'<select name="city" id="s_city"><option value="">地级市</option></select>');
+			// + '<select name="county" id="s_county"> <option value="">区/县</option></select>');
     },
 	// 获取地区json
 	getJson: function () {
@@ -31,7 +31,7 @@ var areaClass = {
             this.display(2, pv, cv);
         }
         $("#s_county").empty();
-		this.display(3, pv, cv);
+		// this.display(3, pv, cv);
     },
 	// 根据上一级变化渲染下一级选项
 	display: function (level, p, c) {

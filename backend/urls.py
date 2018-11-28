@@ -10,8 +10,13 @@ backend_urlpatterns = [
 
     url(r'^crawlerList/$', crawlerView.crawlerList, name='crawlerList'),
     url(r'^crawlerConfig/$', crawlerView.crawlerConfig, name='crawlerConfig'),
-    url(r'^saveConfig/$', crawlerView.saveConfig, name='saveConfig'),
-    url(r'^crawlerInfo/$', crawlerView.saveConfig, name='crawlerInfo'),
+    url(r'^crawlerSave/$', crawlerView.crawlerSave, name='crawlerSave'),
+    url(r'^crawlerInfo/$', crawlerView.crawlerInfo, name='crawlerInfo'),
     url(r'^crawlerHandler/$', crawlerView.handler, name='crawlerHandler'),
+
+    url(r'^spiderIndex/$', spiderView.index, name='spiderIndex'),
+    url(r'^spiderList/$', spiderView.spiderList, name='spiderList'),
+    url(r'^spiderConfig/$', spiderView.config, name='spiderConfig'),
+    url(r'^spiderSave/$', spiderView.save, name='spiderSave'),
 ]
 
