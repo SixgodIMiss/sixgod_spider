@@ -8,6 +8,7 @@ import sys
 import multiprocessing
 import subprocess
 import json
+import datetime, time
 import scrapy
 from scrapy.crawler import CrawlerRunner, CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -15,7 +16,7 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
 from backend.views import userView
 from backend.models import crawlerModel
-from django.db import connection
+from twisted.internet import reactor
 
 
 # 首页
@@ -85,19 +86,12 @@ def crawlerSave(request):
     return JsonResponse({'status': result})
 
 
-def startProcess(crawler_id, spiders):
-    file = os.path.dirname(os.path.abspath(__file__)) + '/log.txt'
-    f = open(file, 'a+')
-    f.write(spiders+'\n')
-    f.close()
-    return True
-
 def handler(request):
     post = request.POST
     user_id = userView.checkLogin(request)
     result = {
         'status': 'fail',
-        'reason': 'Error'
+        'reason': ''
     }
 
     crawler_id = post.get('id', None)
@@ -120,27 +114,42 @@ def handler(request):
         'stopping': '爬虫正在停止',
         'stop': '爬虫已停止'
     }
-    status = check.task.status
-    if active == 'start' and status != 'stop':
-        result['reason'] = condition.get(status)
-    elif active == 'stop' and status != 'running':
-        result['reason'] = condition.get(status)
-    elif active == 'del' and status != 'stop':
-        result['reason'] = condition.get(status)
-    if result['reason'] != 'Error':
-        return JsonResponse(result)
+    status = check.task.status  # 当前状态
+    if active == 'start':
+        if status != 'stop':
+            result['reason'] = condition.get(status)
+        else:
+            # 启动
+            process_name = 'spider-' + str(check.id) + '-' + str(datetime.datetime.now().strftime("%m_%d_%H_%M"))
+            spiders = check.config.spiders
+            if spiders == '':
+                result['reason'] = '没有对应的爬虫程序'
+            else:
+                spider_names = crawlerModel.getSpiders(spiders)
+                result['reason'] = spider_names
+                start = multiprocessing.Process(
+                    name=process_name, target=startProcess, args=(crawler_id, spider_names)
+                )
+                start.daemon = True
+                start.start()
+                print(start.pid)
+                # start.join()
+    elif active == 'stop':
+        crawlerModel.taskHandler(crawler_id, 'stop')
+    elif active == 'del':
+        if status != 'stop':
+            result['reason'] = condition.get(status)
+        else:
+            if crawlerModel.crawlerDel(crawler_id):
+                result['status'] = 'success'
+            else:
+                result['reason'] = '删除失败'
 
-    process_name = check.config.name
-    spiders = check.config.spiders
-    print(spiders)
+    # process_name = check.config.name
+    # spiders = check.config.spiders
+    # print(spiders)
 
-    # start = multiprocessing.Process(
-    #     name=process_name, target=startProcess, args=(crawler_id, 'zhejiang')
-    # )
-    # start.daemon = True
-    # start.start()
-    # print(start.pid)
-    # start.join()
+
 
     # scrapy_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider')
     # subprocess.check_call('scrapy crawl Zhejiang_Hangzhou --no-log', cwd=scrapy_path)
@@ -148,4 +157,23 @@ def handler(request):
     return JsonResponse(result)
 
 
+def startProcess(crawler_id, spiders):
+    # crawlerModel.taskHandler(crawler_id, 'start')
 
+    # 启动
+    # print(get_project_settings())
+    scrapy_process = CrawlerProcess(get_project_settings())
+    # # print(scrapy_process)
+    # # for spider in spiders:
+    scrapy_process.crawl('Zhejiang_Hangzhou')
+    scrapy_process.start()
+
+    # 另外启动方式
+    # scrapy_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider')
+    # subprocess.check_call('scrapy crawl Zhejiang_Hangzhou', cwd=scrapy_path)
+
+    return True
+
+
+def dataView(request):
+    return render(request, 'crawler/data.html', {})

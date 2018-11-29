@@ -5,7 +5,7 @@
         padding-left: 10px;
     }
     .operate button {
-        margin-right: 5px;
+        margin-right: 8px;
     }
 </style>
 
@@ -58,9 +58,18 @@
                 {
                     key: 'name',
                     text: '名称',
-                    width: '250px',
+                    width: '25%',
                     template: function (nodeData, rowData) {
-                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" title="查看详情" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
+                        return '<a href="'+'{% url "crawlerData" %}'+'?&id='+rowData.id+'" title="查看数据" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
+                    }
+                },
+                {
+                    key: 'config',
+                    text: '配置',
+                    width: '5%',
+                    align: 'center',
+                    template: function (nodeData, rowData) {
+                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" title="查看详情">详情</a>';
                     }
                 },
                 {
@@ -98,27 +107,37 @@
                     text: '操作',
                     template: function (nodeData, rowData) {
                         var dom = '<div class="operate" data-id="'+rowData.id+'">';
-                        if (rowData.updated == 3) {
-                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
-                            '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
-                            '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
-                            '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                            '<button class="updated btn btn-info btn-sm" disabled>更新中</button>';
-                        } else if (rowData.status == 1) {
-                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
-                            '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
-                            '<button class="run btn btn-success btn-sm " disabled>运行中</button>' +
-                            '<button class="stop btn btn-warning btn-sm ">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                            '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
+                        if (rowData.status == 'starting') {
+                            dom += '<button class="start btn btn-default btn-sm hide">启动</button>' +
+                                '<button class="start btn btn-primary btn-sm" disabled>启动中</button>' +
+                                '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
+                                '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
+                                '<button class="stop btn btn-warning btn-sm">停止</button>' +
+                                '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
+                                '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
+                        } else if (rowData.status == 'running') {
+                            dom += '<button class="start btn btn-default btn-sm hide">启动</button>' +
+                                '<button class="start btn btn-primary btn-sm hide" disabled>启动中</button>' +
+                                '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
+                                '<button class="run btn btn-success btn-sm" disabled>运行中</button>' +
+                                '<button class="stop btn btn-warning btn-sm">停止</button>' +
+                                '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
+                                '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
+                        } else if (rowData.status == 'stopping') {
+                            dom += '<button class="start btn btn-default btn-sm hide">启动</button>' +
+                                '<button class="start btn btn-primary btn-sm hide" disabled>启动中</button>' +
+                                '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
+                                '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
+                                '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
+                                '<button class="stopping btn btn-warning btn-sm" disabled>停止中</button>' +
+                                '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
                         } else {
                             dom += '<button class="start btn btn-primary btn-sm">启动</button>' +
-                            '<button class="delete btn btn-danger btn-sm">删除</button>' +
-                            '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
-                            '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                            '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
+                                '<button class="delete btn btn-danger btn-sm">删除</button>' +
+                                '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
+                                '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
+                                '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
+                                '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
                         }
                         dom += '</div>';
                         return dom;
@@ -167,10 +186,10 @@
             var id = selector.attr('data-id');
             var name = selector.parents('tr').find('td:eq(2)').text();
 
-            layer.confirm('确认<span style="text-decoration:underline">关闭</span> <span style="color: blue">'+name+'</span> ?', {
+            layer.confirm('确认<span style="text-decoration:underline">停止</span> <span style="color: blue">'+name+'</span> ?', {
                 time: 0 //不自动关闭
                 , title: '应用'
-                , btn: ['关闭', '取消']
+                , btn: ['停止', '取消']
                 , yes: function (index) {
                     selector.find('.stop').addClass('hide');
                     selector.find(".run").addClass('hide');
@@ -206,10 +225,12 @@
                     active: active
                 },
                 success: function (response) {
-                    {#crawler.GM('refreshGrid');#}
-                    {#if (response.status == 'fail') {#}
-                    {#    layer.alert(response.active + '失败！');#}
-                    {#}#}
+                    crawler.GM('refreshGrid');
+                    if (response.status == 'fail') {
+                        layer.alert(response.reason, {
+                            'title': '原因'
+                        });
+                    }
                 }
             });
         }

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import time
+import datetime
 from backend.model import Crawler, CrawlerConfig, Task, Spider
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import serializers
@@ -70,10 +70,7 @@ def crawlerConfig(crawler_id, user_id):
             spiders = item.config.spiders
             spider_names = []
             if spiders:
-                spider_arr = spiders.split('_')
-                for spider_id in spider_arr:
-                    name = Spider.objects.get(id=spider_id).name
-                    spider_names.append(name)
+                spider_names = getSpiders(spiders)
 
             result = {
                 'id': item.id,
@@ -106,7 +103,7 @@ def saveCrawler(params):
             spiders = Spider.objects.filter(province=province, city=city).values('id')
             for spider_id in spiders:
                 spider_arr.append(str(spider_id['id']))
-        spider_str = '_'.join(spider_arr)
+        spider_str = '_'.join(spider_arr)  # 以下划线作分割
 
         if crawler_id == '':
             # 创建
@@ -118,14 +115,74 @@ def saveCrawler(params):
             config_id = Crawler.objects.get(id=crawler_id).config_id
             CrawlerConfig.objects.filter(id=config_id).update(name=name, province=province, city=city, spiders=spider_str)
     except Exception as e:
+        print(e)
         return False
     return True
 
 
+# 获取对应的爬虫程序
+def getSpiders(spider_ids):
+    spider_arr = spider_ids.split('_')
+    spider_names = []
+    for spider_id in spider_arr:
+        name = Spider.objects.get(id=spider_id).name
+        spider_names.append(name)
+    return spider_names
+
+
 # 检测爬虫以及返回爬虫运行状态
 def checkUserCrawler(crawler_id, user_id):
+    check = False
     try:
-        check = Crawler.objects.get(id=crawler_id, config__user_id=user_id)
+        check = Crawler.objects.get(id=crawler_id, config__user_id=user_id, valid=1)
     except Exception as e:
-        check = False
+        print(e)
     return check
+
+
+# 删除爬虫
+def crawlerDel(crawler_id):
+    result = False
+    try:
+        result = Crawler.objects.filter(id=crawler_id).update(valid=0)
+    except Exception as e:
+        print(e)
+    return result
+
+
+# 修改任务状态
+def taskHandler(crawler_id, active):
+    crawler = Crawler.objects.get(id=crawler_id)
+    status = crawler.task.status  # 任务当前状态
+    finish_status = ''  # 修改过后的状态
+    result = {
+        'task': crawler.task.id,
+        'status': '',
+    }
+
+    # 状态的改变是根据上一个状态而进行改变
+    if active == 'start':
+        finish_status = 'starting'
+    elif active == 'stop':
+        finish_status = 'stopping'
+    elif active == 'finish':
+        if status == 'starting':
+            finish_status = 'running'
+        elif status == 'running':
+            finish_status = 'stopping'
+        elif status == 'stopping':
+            finish_status = 'stop'
+        else:
+            finish_status = status
+
+    # 所有任务状态的改变都要严谨点
+    if finish_status != status:
+        if finish_status == 'starting':
+            crawler.task.start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        elif finish_status == 'stopping':
+            crawler.task.end = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    crawler.task.status = finish_status
+    crawler.task.save()
+
+    result['status'] = finish_status
+    return result

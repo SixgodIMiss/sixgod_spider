@@ -1,0 +1,113 @@
+{% include "header.html" %}
+<style type="text/css">
+    .basic-info {
+        padding: 10px;
+        overflow: hidden;
+    }
+    .basic-panel {
+        width: 40%;
+    }
+    .basic-pic {
+        width: 59%;
+        height: 368px;
+    }
+    .list-group-item {
+        padding: 6px;
+    }
+    .progress {
+        height: 12px;
+    }
+    #timeline {
+        width: 100%;
+        height: 350px;
+    }
+    .well {
+        padding: 2px;
+    }
+</style>
+
+<div class="center">
+    {% include "nav.html" %}
+    <div class="main">
+        <a href="javascript:history.go(-1);" class="back">返回上一步</a>
+        <h3>爬取结果展示</h3>
+        <div class="basic-info">
+            <div class="pull-left basic-panel">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><strong>基本信息</strong></h4>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <label>应用：</label>
+                                <span>666</span>
+                            </li>
+                            <li class="list-group-item">
+                                <label>运行状态：</label>
+                                <span>stop</span>
+                            </li>
+                            <li class="list-group-item">
+                                <label>上一次启动时间：</label>
+                                <span>0</span>
+                            </li>
+                            <li class="list-group-item">
+                                <label>上一次结束：</label>
+                                <span>0</span>
+                            </li>
+                            <li class="list-group-item">
+                                <label>上一次爬取数据：</label>
+                                <span>0</span>条
+                            </li>
+                            <li class="list-group-item">
+                                <label>当前爬取进度：</label>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
+                                        <span class="sr-only">60% Complete</span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="pull-right basic-pic well">
+                <div id="timeline"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include "footer.html" %}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var timeline = echarts.init(document.getElementById('timeline'));
+        var options = {
+            title: {
+                text: '数据爬取时间轴',
+                top: 20,
+                left: 20
+            },
+            grid: {
+                top: 80
+            },
+            xAxis: {
+                type: 'category',
+                axisLine: {
+                    show: true
+                },
+                boundaryGap: false,
+                data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: [820, 932, 901, 934, 1290, 1330, 1320],
+                type: 'line',
+                animation: false // 取消动画
+            }]
+        };
+        timeline.setOption(options);
+    });
+</script>
