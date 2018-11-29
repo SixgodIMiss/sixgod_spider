@@ -80,6 +80,20 @@
 {% include "footer.html" %}
 
 <script type="text/javascript">
+    // 最近的10个时间节点 间隔两秒
+    var getTen = function (now = new Date()) {
+        var ten = [];
+        var i = 0;
+        while (++i) {
+            if (10 < i) {
+                break;
+            }
+            var time = new Date(now.getTime()-i*2000);
+            ten.push(time.format('h:m:s'));
+        }
+        return ten
+    };
+
     $(document).ready(function () {
         var timeline = echarts.init(document.getElementById('timeline'));
         var options = {
@@ -97,7 +111,7 @@
                     show: true
                 },
                 boundaryGap: false,
-                data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                data: getTen()
             },
             yAxis: {
                 type: 'value'
@@ -109,5 +123,12 @@
             }]
         };
         timeline.setOption(options);
+
+        setTimeout(function () {
+            options.xAxis.data = getTen();
+            options.series[0].data = range(1, 100);
+            timeline.setOption(options);
+        }, 1000);
     });
+
 </script>
