@@ -1,6 +1,6 @@
 {% include "header.html" %}
 <style type="text/css">
-    .basic-info {
+    .basic-info, .data-log {
         padding: 10px;
         overflow: hidden;
     }
@@ -75,6 +75,20 @@
                 <div id="timeline"></div>
             </div>
         </div>
+        <div class="data-log">
+            <div class="panel panel-default">
+                <!-- Default panel contents -->
+                <div class="panel-heading">数据</div>
+
+                <!-- Table -->
+                <table id="data-list" grid-manager="data-list"></table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">日志</div>
+
+                <table id="log-list" grid-manager="log-list"></table>
+            </div>
+        </div>
     </div>
 </div>
 {% include "footer.html" %}
@@ -89,13 +103,14 @@
                 break;
             }
             var time = new Date(now.getTime()-i*2000);
-            ten.push(time.format('h:m:s'));
+            ten.push(time.format('h:mm:ss'));
         }
-        return ten
+        return ten.sort();
     };
 
     $(document).ready(function () {
         var timeline = echarts.init(document.getElementById('timeline'));
+        var data = range(0, 10, 10);
         var options = {
             title: {
                 text: '数据爬取时间轴',
@@ -105,8 +120,17 @@
             grid: {
                 top: 80
             },
+            tooltip : {
+                trigger: 'axis'
+            },
             xAxis: {
                 type: 'category',
+                name: '时间轴/每间隔2s',
+                nameLocation: 'middle',
+                nameTextStyle: {
+                    fontStyle: 'italic',
+                    padding: [10, 0]
+                },
                 axisLine: {
                     show: true
                 },
@@ -116,19 +140,128 @@
             yAxis: {
                 type: 'value'
             },
-            series: [{
-                data: [820, 932, 901, 934, 1290, 1330, 1320],
+            series: {
+                data: data,
                 type: 'line',
-                animation: false // 取消动画
-            }]
+                animation: true,
+                animationDuration: 200,
+                animationEasing: function (k) {
+                    return k === 1 ? 1 : 1 - Math.pow(2, -10 * k);
+                }
+            }
         };
         timeline.setOption(options);
-
-        setTimeout(function () {
+        setInterval(function () {
             options.xAxis.data = getTen();
-            options.series[0].data = range(1, 100);
+            data.shift();
+            data.push(range(0, 10, 1)[0]);
+            options.series.data = data;
             timeline.setOption(options);
-        }, 1000);
+        }, 2000);
+
+        var data_table = $('#data-list');
+        data_table.GM({
+            height: '300px'
+            ,pageSize: 20
+            ,ajax_data: "{% url 'crawlerList' %}"
+            ,ajax_type: 'POST'
+            ,query: {pluginId: 1}
+            ,supportAjaxPage: true
+            ,supportMenu: false
+            ,columnData: [
+                {
+                    key: 'name',
+                    text: '名称',
+                    width: '25%',
+                },
+                {
+                    key: 'company',
+                    text: '公司',
+                    width: '20%',
+                },
+                {
+                    key: 'project_date',
+                    text: '日期',
+                    width: '10%',
+                    align: 'center',
+                },
+                {
+                    key: 'price',
+                    text: '金额',
+                    width: '8%',
+                    align: 'center',
+                },
+                {
+                    key: 'architecter',
+                    text: '建造师',
+                    align: 'center',
+                    width: '10%'
+                },
+                {
+                    key: '源网址',
+                    text: 'url'
+                }
+            ]
+        });
+        var log_table = $('#log-list');
+        log_table.GM({
+            height: '300px'
+            ,pageSize: 20
+            ,ajax_data: "{% url 'crawlerList' %}"
+            ,ajax_type: 'POST'
+            ,query: {pluginId: 1}
+            ,supportAjaxPage: true
+            ,supportMenu: false
+            ,columnData: [
+                {
+                    key: 'name',
+                    text: '名称',
+                    width: '25%',
+                    template: function (nodeData, rowData) {
+                        return '<a href="'+'{% url "crawlerData" %}'+'?&id='+rowData.id+'" title="查看数据" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
+                    }
+                },
+                {
+                    key: 'config',
+                    text: '配置',
+                    width: '5%',
+                    align: 'center',
+                    template: function (nodeData, rowData) {
+                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" title="查看详情">详情</a>';
+                    }
+                },
+                {
+                    key: 'status',
+                    text: '状态',
+                    width: '5%',
+                    align: 'center',
+                    template: function (nodeData, rowData) {
+                        return '<span style="margin-left: 5px; color: #999;">'+rowData.status+'</span>';
+                    }
+                },
+                {
+                    key: 'area',
+                    text: '地区',
+                    width: '15%',
+                    align: 'center',
+                    template: function (nodeData, rowData) {
+                        return '<span style="margin-left: 5px;">'+rowData.province+'-'+rowData.city+'</span>';
+                    }
+                },
+                {
+                    key: 'user',
+                    text: '创建者',
+                    align: 'center',
+                    width: '10%'
+                },
+                {
+                    key: 'create_time',
+                    text: '创建时间',
+                    align: 'center',
+                    width: '15%'
+                }
+            ]
+        });
     });
 
 </script>

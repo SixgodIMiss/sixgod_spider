@@ -26,3 +26,20 @@ Date.prototype.format = function(fmt){
     }
     return fmt;
 };
+
+/**
+ * 一个范围内的随机整数
+ * @param minNum
+ * @param maxNum
+ * @param count
+ * @returns {Array}
+ */
+function range(minNum, maxNum, count) {
+    var arr = [];
+    var diff = maxNum-minNum;
+    while (count--) {
+        var chance = Math.round(Math.random()*10);// 基本均衡获取 0 到 10 的随机整数，其中获取最小值 0 和最大值 10 的几率少一半
+        arr.push(Math.floor(minNum+diff/10*chance));
+    }
+    return arr;
+}
