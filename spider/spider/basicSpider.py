@@ -25,7 +25,7 @@ class BasicSpider(scrapy.Spider):
     def insertProject(self, params):
         data = [
             params.get('project', ''), params.get('company', ''), params.get('date', ''), params.get('price', ''),
-            params.get('architecter', '')
+            params.get('architecter', ''), params.get('url', '')
         ]
 
         # 写日志
@@ -34,8 +34,8 @@ class BasicSpider(scrapy.Spider):
 
         # 写数据库
         model = MysqlModel('master')
-        model.insert("insert into project(`name`, `company`, `date`, `price`, `architecter`)"
-                             "values (%s, %s, %s, %s, %s)", data)
+        model.insert("insert into project(`name`, `company`, `date`, `price`, `architecter`, `url`)"
+                             "values (%s, %s, %s, %s, %s, %s)", data)
 
         return True
 

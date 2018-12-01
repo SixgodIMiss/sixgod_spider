@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import sys
 import scrapy
 from scrapy.http import Request
 import json
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
 
 # 导入basic
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -96,7 +92,6 @@ class ProjectSpider(BasicSpider):
         # 中标金额
         price = get_price[0].replace('\r\n', '').replace(' ', '') if len(get_price) > 0 else '0.0000'
         price = price.replace(u'万元', '') if u'万元' in price else u'0.0000'
-
         # 建造师
         architecter = get_architecter[0].replace('\r\n', '').replace(' ', '') if len(get_architecter) > 0 else ''
 
@@ -105,7 +100,8 @@ class ProjectSpider(BasicSpider):
             'project': project,
             'date': date,
             'price': price,
-            'architecter': architecter
+            'architecter': architecter,
+            'url': response.url
         }
         self.insertProject(result)
 

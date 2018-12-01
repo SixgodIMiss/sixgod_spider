@@ -30,11 +30,13 @@ class Log(object):
 
         # 初始化目录
         self.base_path = os.path.dirname(os.path.abspath(__file__))
-        if os.path.exists(self.base_path + '/record/' + month) is False:
-            os.mkdir(self.base_path + '/record/' + month)
-        if os.path.exists(self.base_path + '/record/' + month + '/' + day) is False:
-            os.mkdir(self.base_path + '/record/' + month + '/' + day)
-        self.log_path = self.base_path + '/record/' + month + '/' + day
+        month_path = os.path.abspath(self.base_path + '/record/' + month)
+        if os.path.exists(month_path) is False:
+            os.mkdir(month_path)
+        day_path = os.path.abspath(month_path + '/' + day)
+        if os.path.exists(day_path) is False:
+            os.mkdir(day_path)
+        self.log_path = day_path
 
     def write(self, type='project', data={}):
         file = self.log_path

@@ -24,6 +24,10 @@
     .well {
         padding: 2px;
     }
+    {#.nav {#}
+    {#    padding-top: 2px;#}
+    {#    padding-left: 1px;#}
+    {#}#}
 </style>
 
 <div class="center">
@@ -78,15 +82,33 @@
         <div class="data-log">
             <div class="panel panel-default">
                 <!-- Default panel contents -->
-                <div class="panel-heading">数据</div>
+                <div class="panel-heading"><h4>数据</h4></div>
 
                 <!-- Table -->
                 <table id="data-list" grid-manager="data-list"></table>
             </div>
             <div class="panel panel-default">
-                <div class="panel-heading">日志</div>
+                <div class="panel-heading"><h4>日志</h4></div>
+                <div class="panel-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li role="presentation" class="active">
+                            <a href="#run-log" aria-controls="run-log" role="tab" data-toggle="tab">运行</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#operate-log" aria-controls="operate-log" role="tab" data-toggle="tab">操作</a>
+                        </li>
+                    </ul>
+                    <div style="height: 5px;"></div>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="run-log">
+                            <table id="run-log-list" grid-manager="run-log-list"></table>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="operate-log">
+                            <table id="operate-log-list" grid-manager="operate-log-list"></table>
+                        </div>
+                    </div>
+                </div>
 
-                <table id="log-list" grid-manager="log-list"></table>
             </div>
         </div>
     </div>
@@ -161,7 +183,7 @@
 
         var data_table = $('#data-list');
         data_table.GM({
-            height: '300px'
+            height: '360px'
             ,pageSize: 20
             ,ajax_data: "{% url 'crawlerList' %}"
             ,ajax_type: 'POST'
@@ -203,8 +225,9 @@
                 }
             ]
         });
-        var log_table = $('#log-list');
-        log_table.GM({
+
+        var run_log_table = $('#run-log-list');
+        run_log_table.GM({
             height: '300px'
             ,pageSize: 20
             ,ajax_data: "{% url 'crawlerList' %}"
@@ -215,53 +238,56 @@
             ,columnData: [
                 {
                     key: 'name',
-                    text: '名称',
-                    width: '25%',
+                    text: 'spider',
+                    width: '20%',
                     template: function (nodeData, rowData) {
                         return '<a href="'+'{% url "crawlerData" %}'+'?&id='+rowData.id+'" title="查看数据" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
                     }
                 },
                 {
-                    key: 'config',
-                    text: '配置',
-                    width: '5%',
-                    align: 'center',
-                    template: function (nodeData, rowData) {
-                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" title="查看详情">详情</a>';
-                    }
+                    key: 'url',
+                    text: '源网址',
+                    width: '40%',
                 },
                 {
                     key: 'status',
-                    text: '状态',
-                    width: '5%',
+                    text: '状态码',
+                    width: '10%',
                     align: 'center',
-                    template: function (nodeData, rowData) {
-                        return '<span style="margin-left: 5px; color: #999;">'+rowData.status+'</span>';
-                    }
                 },
                 {
-                    key: 'area',
-                    text: '地区',
-                    width: '15%',
-                    align: 'center',
-                    template: function (nodeData, rowData) {
-                        return '<span style="margin-left: 5px;">'+rowData.province+'-'+rowData.city+'</span>';
-                    }
-                },
-                {
-                    key: 'user',
-                    text: '创建者',
-                    align: 'center',
-                    width: '10%'
-                },
-                {
-                    key: 'create_time',
-                    text: '创建时间',
-                    align: 'center',
-                    width: '15%'
+                    key: 'time',
+                    text: '时间',
+                    align: 'center'
                 }
             ]
         });
+
+        var operate_log_table = $('#operate-log-list');
+        $('a[aria-controls="operate-log"]').click(function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+
+            operate_log_table.GM({
+                height: '300px'
+                ,pageSize: 20
+                ,ajax_data: "{% url 'crawlerList' %}"
+                ,ajax_type: 'POST'
+                ,query: {pluginId: 1}
+                ,supportAjaxPage: true
+                ,supportMenu: false
+                ,columnData: [
+                    {
+                        key: 'name',
+                        text: '名称',
+                        width: '25%',
+                        template: function (nodeData, rowData) {
+                            return '<a href="'+'{% url "crawlerData" %}'+'?&id='+rowData.id+'" title="查看数据" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
+                        }
+                    }
+                ]
+            });
+        })
     });
 
 </script>
