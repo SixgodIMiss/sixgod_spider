@@ -186,3 +186,25 @@ def taskHandler(crawler_id, active):
 
     result['status'] = finish_status
     return result
+
+
+# 爬虫任务详情
+def taskInfo(crawler_id):
+    result = {}
+    try:
+        crawler = Crawler.objects.get(id=crawler_id)
+        if crawler:
+            result = {
+                'id': crawler.id,
+                'task_id': crawler.task_id,
+                'name': crawler.config.name,
+                'status': crawler.task.status,
+                'user_id': crawler.config.user_id,
+                'start': crawler.task.start,
+                'end': crawler.task.end
+            }
+    except Exception as e:
+        print(e)
+    return result
+
+

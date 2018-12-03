@@ -14,6 +14,7 @@ class User(models.Model):
     class Meta:
         db_table = 'user'
 
+
 # 应用配置
 class CrawlerConfig(models.Model):
     id = models.Index
@@ -28,6 +29,7 @@ class CrawlerConfig(models.Model):
     class Meta:
         db_table = 'crawler_config'
 
+
 # 运行任务
 class Task(models.Model):
     id = models.Index
@@ -40,6 +42,7 @@ class Task(models.Model):
     class Meta:
         db_table = 'task'
 
+
 # 爬虫应用
 class Crawler(models.Model):
     id = models.Index
@@ -50,6 +53,7 @@ class Crawler(models.Model):
 
     class Meta:
         db_table = 'crawler'
+
 
 # 爬虫程序
 class Spider(models.Model):
@@ -63,3 +67,20 @@ class Spider(models.Model):
 
     class Meta:
         db_table = 'spider'
+
+
+# 中标
+class Project(models.Model):
+    id = models.Index
+    name = models.CharField('工程名')
+    company = models.CharField('公司')
+    date = models.DateField('中标日期', default='')
+    price = models.CharField('中标金额', default='')
+    architecter = models.CharField('建造师', max_length=32, default='')
+    url = models.CharField('源网址', default='')
+    crawler = models.ForeignKey(Crawler)
+    create_time = models.DateTimeField('添加时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    update_time = models.DateTimeField('修改时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+    class Meta:
+        db_table = 'project'

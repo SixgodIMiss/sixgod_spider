@@ -175,5 +175,11 @@ def startProcess(crawler_id, spiders):
     return True
 
 
-def dataView(request):
-    return render(request, 'crawler/data.html', {})
+def taskInfo(request):
+    user_id = userView.checkLogin(request)
+    crawler_id = request.GET.get('id', None)
+    if crawler_id is None or crawler_id == '' or crawlerModel.checkUserCrawler(crawler_id, user_id) is False:
+        return HttpResponseRedirect('/index')
+
+    result = crawlerModel.taskInfo(crawler_id)
+    return render(request, 'crawler/view.html', result)

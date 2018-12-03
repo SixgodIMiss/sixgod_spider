@@ -60,7 +60,7 @@
                     text: '名称',
                     width: '25%',
                     template: function (nodeData, rowData) {
-                        return '<a href="'+'{% url "crawlerData" %}'+'?&id='+rowData.id+'" title="查看数据" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
+                        return '<a href="'+'{% url "crawlerTask" %}'+'?&id='+rowData.id+'" title="查看任务详情" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
                     }
                 },
                 {
