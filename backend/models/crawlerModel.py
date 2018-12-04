@@ -13,6 +13,11 @@ def crawlerList(params):
     size = params['size']
     name = params['name']
     status = params['status'] if params['status'] != 0 else None
+    result = {
+        'data': [],
+        'status': 'success',
+        'totals': ''
+    }
 
     # 查询
     pre = Crawler.objects.order_by('-id').filter(config__user=user_id, valid=1)
@@ -27,6 +32,8 @@ def crawlerList(params):
         'config_id', 'config__name', 'config__province', 'config__city', 'config__create_time', 'config__user__name',
         'task_id', 'task__status', 'task__start', 'task__end'
     )
+    # print(lists)
+
     # 分页
     paginator = Paginator(lists, size)
     try:
@@ -35,12 +42,8 @@ def crawlerList(params):
         items = paginator.page(1)
     except EmptyPage:
         items = paginator.page(paginator.num_pages)
+    result['totals'] = paginator.num_pages
 
-    result = {
-        'status': 'success',
-        'data': [],
-        'totals': items.number
-    }
     # 格式化
     for item in items:
         # print(item)
@@ -107,13 +110,17 @@ def saveCrawler(params):
 
         if crawler_id == '':
             # 创建
-            config = CrawlerConfig.objects.create(name=name, province=province, city=city, user_id=user_id, spiders=spider_str)
-            task = Task.objects.create(status='stop')
-            Crawler.objects.create(config_id=config.id, task_id=task.id)
+            config = CrawlerConfig.objects.create(name=name, province=province, city=city,
+                                                  user_id=user_id, spiders=spider_str)
+            task = Task.objects.create(status='stop', crawler_id=0)
+            crawler = Crawler.objects.create(config_id=config.id, task_id=task.id)
+            task.crawler_id = crawler.id
+            task.save()
         else:
             # 修改
             config_id = Crawler.objects.get(id=crawler_id).config_id
-            CrawlerConfig.objects.filter(id=config_id).update(name=name, province=province, city=city, spiders=spider_str)
+            CrawlerConfig.objects.filter(id=config_id).update(name=name, province=province, city=city,
+                                                              spiders=spider_str)
     except Exception as e:
         print(e)
         return False
@@ -152,39 +159,57 @@ def crawlerDel(crawler_id):
 
 # 修改任务状态
 def taskHandler(crawler_id, active):
-    crawler = Crawler.objects.get(id=crawler_id)
-    status = crawler.task.status  # 任务当前状态
     finish_status = ''  # 修改过后的状态
     result = {
-        'task': crawler.task.id,
+        'task': 0,
         'status': '',
     }
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # 状态的改变是根据上一个状态而进行改变
-    if active == 'start':
-        finish_status = 'starting'
-    elif active == 'stop':
-        finish_status = 'stopping'
-    elif active == 'finish':
-        if status == 'starting':
-            finish_status = 'running'
-        elif status == 'running':
+    try:
+        crawler = Crawler.objects.get(id=crawler_id)
+        status = crawler.task.status  # 任务当前状态
+
+        # 状态的改变是根据上一个状态而进行改变
+        if active == 'start':
+            # 启动相当于创建一个任务
+            finish_status = 'starting'
+            new_task = Task.objects.create(crawler_id=crawler_id, status=finish_status, start=now)
+            # 将新任务绑到应用上
+            crawler.task_id = new_task.id
+            crawler.save()
+
+            result['status'] = finish_status
+            result['task'] = crawler.task_id
+            return result
+        elif active == 'stop':
             finish_status = 'stopping'
-        elif status == 'stopping':
-            finish_status = 'stop'
-        else:
-            finish_status = status
+        elif active == 'finish':
+            if status == 'starting':
+                finish_status = 'running'
+            elif status == 'running':
+                finish_status = 'stopping'
+            elif status == 'stopping':
+                finish_status = 'stop'
+            else:
+                finish_status = status
 
-    # 所有任务状态的改变都要严谨点
-    if finish_status != status:
-        if finish_status == 'starting':
-            crawler.task.start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        elif finish_status == 'stopping':
-            crawler.task.end = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    crawler.task.status = finish_status
-    crawler.task.save()
+        # 所有任务状态的改变都要严谨点
+        if finish_status != status:
+            if finish_status == 'starting':
+                crawler.task.start = now
+            elif finish_status == 'stopping':
+                crawler.task.end = now
 
-    result['status'] = finish_status
+        # 修改完应用对应的任务后保存
+        crawler.task.status = finish_status
+        crawler.task.save()
+
+        result['task'] = crawler.task.id
+        result['status'] = finish_status
+    except Exception as e:
+        print(e)
+
     return result
 
 
@@ -201,7 +226,7 @@ def taskInfo(crawler_id):
                 'status': crawler.task.status,
                 'user_id': crawler.config.user_id,
                 'start': crawler.task.start,
-                'end': crawler.task.end
+                'end': crawler.task.end.strftime("%Y-%m-%d %H:%M:%S") if crawler.task.end else None
             }
     except Exception as e:
         print(e)

@@ -51,13 +51,28 @@ def timeline(request):
     return JsonResponse(result)
 
 
+# 爬虫应用对应的数据
 def dataList(request):
     user_id = userView.checkLogin(request)
     post = request.POST
-    result = {
-        'data': [],
-        'status': 'fail',
-        'totals': 0
+    crawler_id = post.get('crawler_id', None)
+
+    # 验参
+    if crawler_id is None or crawler_id == '' or crawlerModel.checkUserCrawler(crawler_id, user_id) is False:
+        return JsonResponse(result)
+
+    # 查看任务运行状态
+    task = crawlerModel.taskInfo(crawler_id)
+    if task['status'] == 'stop':
+        return JsonResponse(result)
+
+    params = {
+        'crawler_id': 2,
+        'start': '2018-11-27 00:00:00',
+        'end': '',
+        'page': post.get('cPage', 1),
+        'size': post.get('pSize', 10)
     }
+    result = dataModel.query(params)
     return JsonResponse(result)
 

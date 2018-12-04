@@ -47,7 +47,8 @@
         var crawler = $('#crawler-list');
         {#crawler.GM('clear');#}
         crawler.GM({
-            height: '500px'
+            disableCache: true
+            ,height: '500px'
             ,pageSize: 20
             ,ajax_data: "{% url 'crawlerList' %}"
             ,ajax_type: 'POST'
@@ -75,7 +76,7 @@
                 {
                     key: 'status',
                     text: '状态',
-                    width: '5%',
+                    width: '8%',
                     align: 'center',
                     template: function (nodeData, rowData) {
                         return '<span style="margin-left: 5px; color: #999;">'+rowData.status+'</span>';
@@ -84,7 +85,7 @@
                 {
                     key: 'area',
                     text: '地区',
-                    width: '15%',
+                    width: '12%',
                     align: 'center',
                     template: function (nodeData, rowData) {
                         return '<span style="margin-left: 5px;">'+rowData.province+'-'+rowData.city+'</span>';
@@ -133,6 +134,7 @@
                                 '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
                         } else {
                             dom += '<button class="start btn btn-primary btn-sm">启动</button>' +
+                                '<button class="starting btn btn-primary btn-sm hide" disabled>启动中</button>' +
                                 '<button class="delete btn btn-danger btn-sm">删除</button>' +
                                 '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
                                 '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
@@ -173,7 +175,7 @@
                 , yes: function (index) {
                     selector.find('.start').addClass('hide');
                     selector.find(".delete").addClass('hide');
-                    selector.find(".run").removeClass('hide');
+                    selector.find(".starting").removeClass('hide');
                     selector.find(".stop").removeClass('hide');
 
                     active(id, 'start');
@@ -193,6 +195,7 @@
                 , yes: function (index) {
                     selector.find('.stop').addClass('hide');
                     selector.find(".run").addClass('hide');
+                    selector.find(".starting").addClass('hide');
                     selector.find(".stopping").removeClass('hide');
 
                     active(id, 'stop');

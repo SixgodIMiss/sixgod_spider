@@ -114,9 +114,276 @@
     </div>
 </div>
 {% include "footer.html" %}
-
 <script type="text/javascript">
-    // 最近的10个时间节点 间隔两秒
+    // 时间轴
+    var timeline = echarts.init(document.getElementById('timeline'));
+    var options = {
+        title: {
+            text: '数据爬取时间轴',
+            top: 20,
+            left: 20
+        },
+        grid: {
+            top: 80
+        },
+        tooltip : {
+            trigger: 'axis'
+        },
+        xAxis: {
+            type: 'category',
+            name: '时间轴',
+            nameLocation: 'middle',
+            nameTextStyle: {
+                fontStyle: 'italic',
+                padding: [10, 0]
+            },
+            axisLine: {
+                show: true
+            },
+            axisTick: {
+                alignWithLabel: true
+            },
+            boundaryGap: true,
+            data: []
+        },
+        yAxis: {
+            type: 'value',
+        },
+        series: {
+            data: [],
+            type: 'line',
+            animation: true,
+            animationDuration: 100,
+            animationEasing: function (k) {
+                return k === 1 ? 1 : 1 - Math.pow(2, -10 * k);
+            }
+        }
+    };
+    timeline.setOption(options);
+
+    // 数据表
+    var data_table = $('#data-list');
+    data_table.GM({
+        disableCache: true
+        ,height: '460px'
+        ,pageSize: 10
+        ,ajax_data: "{% url 'dataList' %}"
+        ,ajax_type: 'POST'
+        ,query: {
+            'crawler_id': "{{ id }}"
+        }
+        ,supportAjaxPage: true
+        ,supportMenu: false
+        ,columnData: [
+            {
+                key: 'name',
+                text: '名称',
+                width: '25%',
+                template: function (rowNode, allNode) {
+                    return '<span title="'+rowNode+'">'+rowNode+'</span>';
+                }
+            },
+            {
+                key: 'company',
+                text: '公司',
+                width: '15%',
+                template: function (rowNode, allNode) {
+                    return '<span title="'+rowNode+'">'+rowNode+'</span>';
+                }
+            },
+            {
+                key: 'date',
+                text: '日期',
+                width: '8%',
+                align: 'center',
+            },
+            {
+                key: 'price',
+                text: '金额（万元）',
+                width: '10%',
+                align: 'center',
+            },
+            {
+                key: 'architecter',
+                text: '建造师',
+                align: 'center',
+                width: '6%'
+            },
+            {
+                key: 'url',
+                text: '源网址',
+                width: '15%',
+                template: function (rowNode, allNode) {
+                    return '<a title="'+rowNode+'" href="'+rowNode+'" target="_blank">'+rowNode+'</a>';
+                }
+            },
+            {
+                key: 'create_time',
+                text: '爬取时间'
+            }
+        ]
+    });
+
+    // 日志
+    var run_log_table = $('#run-log-list');
+    run_log_table.GM({
+        disableCache: true
+        ,height: '300px'
+        ,pageSize: 20
+        ,ajax_data: "{% url 'crawlerList' %}"
+        ,ajax_type: 'POST'
+        ,query: {pluginId: 1}
+        ,supportAjaxPage: true
+        ,supportMenu: false
+        ,columnData: [
+            {
+                key: 'name',
+                text: 'spider',
+                width: '20%',
+            },
+            {
+                key: 'url',
+                text: '源网址',
+                width: '40%',
+            },
+            {
+                key: 'status',
+                text: '状态码',
+                width: '10%',
+                align: 'center',
+            },
+            {
+                key: 'time',
+                text: '时间',
+                align: 'center'
+            }
+        ]
+    });
+
+    var operate_log_table = $('#operate-log-list');
+    $('a[aria-controls="operate-log"]').click(function (e) {
+        e.preventDefault();
+        $(this).tab('show');
+        operate_log_table.GM({
+            disableCache: true
+            ,height: '300px'
+            ,pageSize: 20
+            ,ajax_data: "{% url 'crawlerList' %}"
+            ,ajax_type: 'POST'
+            ,query: {pluginId: 1}
+            ,supportAjaxPage: true
+            ,supportMenu: false
+            ,columnData: [
+                {
+                    key: 'name',
+                    text: '名称',
+                    width: '25%'
+                }
+            ]
+        });
+    });
+</script>
+<script type="text/javascript">
+    // 爬虫应用运行状态
+    var origin_status = "{{ status }}";
+    var status = origin_status;
+
+    var checkStatus = function () {
+        $.ajax({
+            url: "{% url 'crawlerStatus' %}",
+            type: 'POST',
+            data: {
+                'id': "{{ id }}"
+            },
+            success: function (response) {
+                if (response.msg != '') {
+                    layer.alert(response['msg']);
+
+                    timer.clear();
+                } else {
+                    status = response.status;
+
+                    // 控制几个元素自动刷新
+                    if (status == 'stop') {
+                        timer.clear();
+                    } else {
+                        if (!timer.status) {
+                            timer.run();
+                        }
+                    }
+
+                    // 不断请求运行状态
+                    setTimeout(checkStatus, 1000);
+                }
+            }
+        });
+    };
+    checkStatus();
+
+    // 注册的timer
+    var timer = {
+        // 时间轴
+        timeline: {
+            // 执行功能
+            func: function (callback, selector, options, i) {
+                this.timer = setInterval(function() {
+                    callback(selector, options, i);
+                }, this.interval);
+            },
+            // 计时器
+            timer: null,
+            // 时间间隔
+            interval: 1000
+        },
+        // 数据展示
+        data: {
+            func: function (selector) {
+                this.timer = setInterval(function () {
+                    selector.GM('refreshGrid');
+                }, this.interval);
+            },
+            timer: null,
+            interval: 4000
+        },
+        // 日志
+        log: {
+            func: function (selector) {
+                this.timer = setInterval(function () {
+                    selector.GM('refreshGrid')
+                }, this.interval);
+            },
+            timer: null,
+            interval: 1000000
+        },
+        start: function (timer, obj) {
+            switch (timer) {
+                case 'timeline':
+                    this.timeline.func(obj);
+                    break;
+                case 'data':
+                    this.data.func(obj);
+                    break;
+                case 'log':
+                    this.log.func(obj);
+                    break;
+            }
+        },
+        clear: function () {
+            clearInterval(this.timeline.timer);
+            clearInterval(this.data.timer);
+            clearInterval(this.log.timer);
+            this.status = false;
+        },
+        run: function () {
+            this.timeline.func(showLine, timeline, options, 10);
+            this.data.func(data_table);
+            {#this.log.func(run_log_table);#}
+            this.status = true;
+        },
+        status: false
+    };
+
+    // 最近的10个时间节点 间隔1秒
     var getTen = function (now = new Date()) {
         var ten = [];
         var i = 0;
@@ -130,193 +397,35 @@
         return ten.sort();
     };
 
-    $(document).ready(function () {
-        // 折线图
-        var timeline = echarts.init(document.getElementById('timeline'));
-        var options = {
-            title: {
-                text: '数据爬取时间轴',
-                top: 20,
-                left: 20
-            },
-            grid: {
-                top: 80
-            },
-            tooltip : {
-                trigger: 'axis'
-            },
-            xAxis: {
-                type: 'category',
-                name: '时间轴',
-                nameLocation: 'middle',
-                nameTextStyle: {
-                    fontStyle: 'italic',
-                    padding: [10, 0]
-                },
-                axisLine: {
-                    show: true
-                },
-                axisTick: {
-                    alignWithLabel: true
-                },
-                boundaryGap: true,
-                data: []
-            },
-            yAxis: {
-                type: 'value',
-            },
-            series: {
-                data: [],
-                type: 'line',
-                animation: true,
-                animationDuration: 100,
-                animationEasing: function (k) {
-                    return k === 1 ? 1 : 1 - Math.pow(2, -10 * k);
-                }
-            }
-        };
-        var line_data = [];
-        var showLine = function (i) {
-            options.xAxis.data = getTen();
+    // 显示timeliness折线
+    var showLine = function (selector, options, i) {
+        options.xAxis.data = getTen();
 
-            // 查询一个时间节点的
-            var number = 10;
-            if (i > 0) {
-                number = 1;
-            }
+        // 查询一个时间节点的
+        var number = 10;
+        if (i == 1) {
+            number = 1;
+        }
 
-            $.ajax({
-                url: "{% url 'timeline' %}",
-                type: 'POST',
-                data: {
-                    crawler_id: "{{ id }}",
-                    deadline: '16:06:06',
-                    number: number
-                },
-                success: function (response) {
-                    if (response['status'] == 'success') {
-                        for (var i in response['data']) {
-                            line_data.push(response['data'][i]);
-                        }
+        $.ajax({
+            url: "{% url 'timeline' %}",
+            type: 'POST',
+            data: {
+                crawler_id: "{{ id }}",
+                deadline: options.xAxis.data[number-1],
+                number: number
+            },
+            success: function (response) {
+                var line_data = [];
+                if (response['status'] == 'success') {
+                    for (var i in response['data']) {
+                        line_data.push(response['data'][i]);
                     }
-                    options.series.data = line_data;
-                    timeline.setOption(options);
                 }
-            });
-        };
-        showLine(0);
-        {#var line_timer = setInterval(function () {#}
-        {#    showLine(1);#}
-        {#}, 1000);#}
 
-        // 数据表
-        var data_table = $('#data-list');
-        data_table.GM({
-            height: '360px'
-            ,pageSize: 20
-            ,ajax_data: "{% url 'dataList' %}"
-            ,ajax_type: 'POST'
-            ,query: {
-                'crawler_id': 1
+                options.series.data = line_data;
+                selector.setOption(options);
             }
-            ,supportAjaxPage: true
-            ,supportMenu: false
-            ,columnData: [
-                {
-                    key: 'name',
-                    text: '名称',
-                    width: '25%',
-                },
-                {
-                    key: 'company',
-                    text: '公司',
-                    width: '20%',
-                },
-                {
-                    key: 'project_date',
-                    text: '日期',
-                    width: '10%',
-                    align: 'center',
-                },
-                {
-                    key: 'price',
-                    text: '金额',
-                    width: '8%',
-                    align: 'center',
-                },
-                {
-                    key: 'architecter',
-                    text: '建造师',
-                    align: 'center',
-                    width: '10%'
-                },
-                {
-                    key: '源网址',
-                    text: 'url'
-                },
-                {
-                    key: '爬取时间',
-                    text: 'create_time'
-                }
-            ]
         });
-
-        var run_log_table = $('#run-log-list');
-        run_log_table.GM({
-            height: '300px'
-            ,pageSize: 20
-            ,ajax_data: "{% url 'crawlerList' %}"
-            ,ajax_type: 'POST'
-            ,query: {pluginId: 1}
-            ,supportAjaxPage: true
-            ,supportMenu: false
-            ,columnData: [
-                {
-                    key: 'name',
-                    text: 'spider',
-                    width: '20%',
-                },
-                {
-                    key: 'url',
-                    text: '源网址',
-                    width: '40%',
-                },
-                {
-                    key: 'status',
-                    text: '状态码',
-                    width: '10%',
-                    align: 'center',
-                },
-                {
-                    key: 'time',
-                    text: '时间',
-                    align: 'center'
-                }
-            ]
-        });
-
-        var operate_log_table = $('#operate-log-list');
-        $('a[aria-controls="operate-log"]').click(function (e) {
-            e.preventDefault();
-            $(this).tab('show');
-
-            operate_log_table.GM({
-                height: '300px'
-                ,pageSize: 20
-                ,ajax_data: "{% url 'crawlerList' %}"
-                ,ajax_type: 'POST'
-                ,query: {pluginId: 1}
-                ,supportAjaxPage: true
-                ,supportMenu: false
-                ,columnData: [
-                    {
-                        key: 'name',
-                        text: '名称',
-                        width: '25%'
-                    }
-                ]
-            });
-        })
-    });
-
+    };
 </script>

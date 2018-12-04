@@ -99,7 +99,7 @@
                             city: city
                         },
                         'success': function (result) {
-                            if (result['status']) {
+                            if (result['status'] == 'success') {
                                 window.location.href = '/index';
                             } else {
                                 layer.alert(result['msg']);

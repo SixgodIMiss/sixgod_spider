@@ -33,6 +33,7 @@ class CrawlerConfig(models.Model):
 # 运行任务
 class Task(models.Model):
     id = models.Index
+    crawler_id = models.IntegerField()
     status = models.CharField('运行状态')  # stop stopping running starting
     start = models.DateTimeField('启动时间')  # 上一次
     end = models.DateTimeField('关闭时间')  # 上一次
@@ -47,7 +48,7 @@ class Task(models.Model):
 class Crawler(models.Model):
     id = models.Index
     config = models.ForeignKey(CrawlerConfig)  # 配置记录ID
-    task = models.ForeignKey(Task)  # 运行任务
+    task = models.ForeignKey(Task)
     valid = models.IntegerField(default=1)  # 是否1有效, 2无
     create_time = models.DateTimeField('创建时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 

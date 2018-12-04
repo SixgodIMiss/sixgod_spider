@@ -77,13 +77,20 @@ def crawlerSave(request):
         'city': post.get('city', ''),
         'crawler_id': post.get('id', '')
     }
+    result = {
+        'status': 'fail',
+        'msg': ''
+    }
 
     # 不传ID就凉
-    if params['crawler_id'] == '' or params['province'] == '' or params['city'] == '':
-        result = 'error'
+    if params['province'] == '' or params['city'] == '':
+        result['msg'] = '缺少省市'
     else:
-        result = crawlerModel.saveCrawler(params)
-    return JsonResponse({'status': result})
+        if crawlerModel.saveCrawler(params):
+            result['status'] = 'success'
+        else:
+            result['msg'] = '保存失败'
+    return JsonResponse(result)
 
 
 def handler(request):
@@ -132,10 +139,19 @@ def handler(request):
                 )
                 start.daemon = True
                 start.start()
-                print(start.pid)
+                # print(start.pid)
                 # start.join()
+
+                if crawlerModel.taskHandler(crawler_id, 'start'):
+                    result['status'] = 'success'
+                else:
+                    result['reason'] = '启动失败'
+
     elif active == 'stop':
-        crawlerModel.taskHandler(crawler_id, 'stop')
+        if crawlerModel.taskHandler(crawler_id, 'stop'):
+            result['status'] = 'success'
+        else:
+            result['reason'] = '停止失败'
     elif active == 'del':
         if status != 'stop':
             result['reason'] = condition.get(status)
@@ -148,8 +164,6 @@ def handler(request):
     # process_name = check.config.name
     # spiders = check.config.spiders
     # print(spiders)
-
-
 
     # scrapy_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider')
     # subprocess.check_call('scrapy crawl Zhejiang_Hangzhou --no-log', cwd=scrapy_path)
@@ -175,6 +189,7 @@ def startProcess(crawler_id, spiders):
     return True
 
 
+# 应用爬取详情
 def taskInfo(request):
     user_id = userView.checkLogin(request)
     crawler_id = request.GET.get('id', None)
@@ -183,3 +198,25 @@ def taskInfo(request):
 
     result = crawlerModel.taskInfo(crawler_id)
     return render(request, 'crawler/view.html', result)
+
+
+# 监测爬虫运行状态
+def checkStatus(request):
+    use_id = userView.checkLogin(request)
+    crawler_id = request.POST.get('id', None)
+    result = {
+        'msg': '',
+        'status': ''
+    }
+
+    if crawler_id is None or crawler_id == '':
+        result['msg'] = '参数'
+        return JsonResponse(result)
+
+    crawler = crawlerModel.checkUserCrawler(crawler_id, use_id)
+    if crawler:
+        result['status'] = crawler.task.status
+    else:
+        result['msg'] = '非法操作'
+
+    return JsonResponse(result)

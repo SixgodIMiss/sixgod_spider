@@ -14,6 +14,7 @@ backend_urlpatterns = [
     url(r'^crawlerInfo/$', crawlerView.crawlerInfo, name='crawlerInfo'),
     url(r'^crawlerHandler/$', crawlerView.handler, name='crawlerHandler'),
     url(r'^crawlerTask/$', crawlerView.taskInfo, name='crawlerTask'),
+    url(r'^crawlerStatus/$', crawlerView.checkStatus, name='crawlerStatus'),
 
     url(r'^spiderIndex/$', spiderView.index, name='spiderIndex'),
     url(r'^spiderList/$', spiderView.spiderList, name='spiderList'),
