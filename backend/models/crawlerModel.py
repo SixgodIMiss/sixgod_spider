@@ -157,8 +157,8 @@ def crawlerDel(crawler_id):
     return result
 
 
-# 修改任务状态
-def taskHandler(crawler_id, active):
+# 修改任务状态 pid->爬虫程序运行所在的子进程ID
+def taskHandler(crawler_id, active, pid=0):
     finish_status = ''  # 修改过后的状态
     result = {
         'task': 0,
@@ -174,7 +174,7 @@ def taskHandler(crawler_id, active):
         if active == 'start':
             # 启动相当于创建一个任务
             finish_status = 'starting'
-            new_task = Task.objects.create(crawler_id=crawler_id, status=finish_status, start=now)
+            new_task = Task.objects.create(crawler_id=crawler_id, status=finish_status, start=now, pid=pid)
             # 将新任务绑到应用上
             crawler.task_id = new_task.id
             crawler.save()
@@ -183,7 +183,8 @@ def taskHandler(crawler_id, active):
             result['task'] = crawler.task_id
             return result
         elif active == 'stop':
-            finish_status = 'stopping'
+            # 先不考虑stopping状态
+            finish_status = 'stop'
         elif active == 'finish':
             if status == 'starting':
                 finish_status = 'running'
@@ -209,7 +210,7 @@ def taskHandler(crawler_id, active):
         result['status'] = finish_status
     except Exception as e:
         print(e)
-
+        return False
     return result
 
 
@@ -225,8 +226,8 @@ def taskInfo(crawler_id):
                 'name': crawler.config.name,
                 'status': crawler.task.status,
                 'user_id': crawler.config.user_id,
-                'start': crawler.task.start,
-                'end': crawler.task.end.strftime("%Y-%m-%d %H:%M:%S") if crawler.task.end else None
+                'start': crawler.task.start.strftime("%Y-%m-%d %H:%M:%S"),
+                'end': crawler.task.end.strftime("%Y-%m-%d %H:%M:%S") if crawler.task.end else ''
             }
     except Exception as e:
         print(e)

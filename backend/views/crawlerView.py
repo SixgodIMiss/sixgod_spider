@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os
+import os, psutil, signal
 os.environ['DJANGO_SETTINGS_MODULE'] = 'sixgod_spider.settings'
 import django  # 多进程用
 django.setup()
@@ -15,7 +15,7 @@ from scrapy.utils.project import get_project_settings
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
 from backend.views import userView
-from backend.models import crawlerModel
+from backend.models import crawlerModel, dataModel
 from twisted.internet import reactor
 
 
@@ -127,27 +127,22 @@ def handler(request):
             result['reason'] = condition.get(status)
         else:
             # 启动
-            process_name = 'spider-' + str(check.id) + '-' + str(datetime.datetime.now().strftime("%m_%d_%H_%M"))
             spiders = check.config.spiders
             if spiders == '':
                 result['reason'] = '没有对应的爬虫程序'
             else:
-                spider_names = crawlerModel.getSpiders(spiders)
-                result['reason'] = spider_names
-                start = multiprocessing.Process(
-                    name=process_name, target=startProcess, args=(crawler_id, spider_names)
-                )
-                start.daemon = True
-                start.start()
-                # print(start.pid)
-                # start.join()
-
-                if crawlerModel.taskHandler(crawler_id, 'start'):
+                task = crawlerModel.taskHandler(crawler_id, 'start')
+                if task:
                     result['status'] = 'success'
                 else:
                     result['reason'] = '启动失败'
 
+                # 子进程启动爬虫
+                spider_names = crawlerModel.getSpiders(spiders)
+                startProcess(task['task'], spider_names)
+
     elif active == 'stop':
+        stopProcess(check.task)
         if crawlerModel.taskHandler(crawler_id, 'stop'):
             result['status'] = 'success'
         else:
@@ -171,28 +166,55 @@ def handler(request):
     return JsonResponse(result)
 
 
-def startProcess(crawler_id, spiders):
-    # crawlerModel.taskHandler(crawler_id, 'start')
-
+# 执行子进程并返回pid
+def startProcess(task_id, spiders):
     # 启动
-    # print(get_project_settings())
-    scrapy_process = CrawlerProcess(get_project_settings())
-    # # print(scrapy_process)
-    # # for spider in spiders:
-    scrapy_process.crawl('Zhejiang_Hangzhou')
-    scrapy_process.start()
+    # process_name = 'spider-' + str(task_id) + '-' + str(datetime.datetime.now().strftime("%m_%d_%H_%M"))
+    # start = multiprocessing.Process(
+    #     name=process_name, target=multiSpider, args=(task_id, spiders)
+    # )
+    # start.daemon = True
+    # start.start()
+    # # start.join()
+    # pid = start.pid
 
     # 另外启动方式
-    # scrapy_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider')
-    # subprocess.check_call('scrapy crawl Zhejiang_Hangzhou', cwd=scrapy_path)
+    scrapy_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider')
+    pid = subprocess.Popen('scrapy crawl '+spiders[0]+' -a task_id='+str(task_id), cwd=scrapy_path).pid
+
+    # 将pid绑定task
+    task = crawlerModel.Task.objects.get(id=task_id)
+    task.pid = pid
+    task.save()
 
     return True
+
+
+def multiSpider(task_id, spiders):
+    process = CrawlerProcess(get_project_settings())
+    process.crawl(spiders[0], task_id=task_id)
+    process.start()
+
+
+# 关闭爬虫进程
+def stopProcess(task):
+    # p = psutil.Process(pid=int(pid))
+    try:
+        os.kill(task.pid, signal.SIGILL)
+    except Exception as e:
+        print(e)
+    finally:
+        task.status = 'stop'
+        task.end = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        task.save()
+        return True
 
 
 # 应用爬取详情
 def taskInfo(request):
     user_id = userView.checkLogin(request)
     crawler_id = request.GET.get('id', None)
+
     if crawler_id is None or crawler_id == '' or crawlerModel.checkUserCrawler(crawler_id, user_id) is False:
         return HttpResponseRedirect('/index')
 
@@ -206,7 +228,8 @@ def checkStatus(request):
     crawler_id = request.POST.get('id', None)
     result = {
         'msg': '',
-        'status': ''
+        'status': '',
+        'number': 0
     }
 
     if crawler_id is None or crawler_id == '':
@@ -218,5 +241,13 @@ def checkStatus(request):
         result['status'] = crawler.task.status
     else:
         result['msg'] = '非法操作'
+
+    # 如果爬到了数据就变成running
+    task = crawler.task
+    result['number'] = dataModel.checkTaskData(task.id)
+    if task.status == 'starting' and result['number'] != '':
+        task.status = 'running'
+        task.save()
+        result['status'] = 'running'
 
     return JsonResponse(result)

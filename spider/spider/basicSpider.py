@@ -13,19 +13,21 @@ from log import Log
 class BasicSpider(scrapy.Spider):
     log = None
     model = None
+    task_id = 0
 
-    def __init__(self, crawler_id=0):
-        print(crawler_id)
+    def __init__(self, task_id=0):
         if self.log is None:
-                self.log = Log()
+            self.log = Log()
 
         if self.model is None:
             self.model = MysqlModel('master')
 
+        self.task_id = task_id
+
     def insertProject(self, params):
         data = [
             params.get('project', ''), params.get('company', ''), params.get('date', ''), params.get('price', ''),
-            params.get('architecter', ''), params.get('url', '')
+            params.get('architecter', ''), params.get('url', ''), self.task_id
         ]
 
         # 写日志
@@ -34,8 +36,8 @@ class BasicSpider(scrapy.Spider):
 
         # 写数据库
         model = MysqlModel('master')
-        model.insert("insert into project(`name`, `company`, `date`, `price`, `architecter`, `url`)"
-                             "values (%s, %s, %s, %s, %s, %s)", data)
+        model.insert("insert into project(`name`, `company`, `date`, `price`, `architecter`, `url`, `task_id`)"
+                             "values (%s, %s, %s, %s, %s, %s, %s)", data)
 
         return True
 

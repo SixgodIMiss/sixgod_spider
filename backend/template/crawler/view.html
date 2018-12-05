@@ -9,7 +9,7 @@
     }
     .basic-pic {
         width: 59%;
-        height: 368px;
+        height: 367px;
     }
     .list-group-item {
         padding: 6px;
@@ -49,25 +49,25 @@
                             </li>
                             <li class="list-group-item">
                                 <label>运行状态：</label>
-                                <span>{{ status }}</span>
+                                <span id="basic-status">{{ status }}</span>
                             </li>
                             <li class="list-group-item">
-                                <label>上一次启动时间：</label>
-                                <span>{{ start|date:'Y-m-d H:i:s' }}</span>
+                                <label>启动时间：</label>
+                                <span id="basic-start">{{ start }}</span>
                             </li>
                             <li class="list-group-item">
-                                <label>上一次结束：</label>
-                                <span>{{ end|date:'Y-m-d H:i:s' }}</span>
+                                <label>结束时间：</label>
+                                <span id="basic-stop">{{ end }}</span>
                             </li>
                             <li class="list-group-item">
-                                <label>上一次爬取数据：</label>
-                                <span>0</span>条
+                                <label>爬取数据：</label>
+                                <span id="basic-num">0</span>条
                             </li>
                             <li class="list-group-item">
                                 <label>当前爬取进度：</label>
                                 <div class="progress">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
-                                        <span class="sr-only">60% Complete</span>
+                                    <div id="basic-progress" class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
+                                        <span class="sr-only"></span>
                                     </div>
                                 </div>
                             </li>
@@ -82,7 +82,13 @@
         <div class="data-log">
             <div class="panel panel-default">
                 <!-- Default panel contents -->
-                <div class="panel-heading"><h4>数据</h4></div>
+                <div class="panel-heading" style="overflow: hidden;">
+                    <h4 class="pull-left">数据</h4>
+                    <div class="pull-right" style="margin-top: 8px;">
+                        <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#update-modal">更新</button>
+                        <button class="btn btn-sm btn-danger" id="del-data">删除</button>
+                    </div>
+                </div>
 
                 <!-- Table -->
                 <table id="data-list" grid-manager="data-list"></table>
@@ -114,6 +120,158 @@
     </div>
 </div>
 {% include "footer.html" %}
+{% include "crawler/update.html" %}
+
+<script type="text/javascript">
+    // 爬虫应用运行状态
+    var origin_status = "{{ status }}";
+    var status = origin_status;
+
+    var checkStatus = function () {
+        $.ajax({
+            url: "{% url 'crawlerStatus' %}",
+            type: 'POST',
+            data: {
+                'id': "{{ id }}"
+            },
+            success: function (response) {
+                if (response.msg != '') {
+                    layer.alert(response['msg']);
+
+                    timer.clear();
+                } else {
+                    status = response.status;
+                    $('#basic-status').text(status);
+                    $('#basic-num').text(response.number);
+
+                    // 控制几个元素自动刷新
+                    if (status == 'stop') {
+                        timer.clear();
+                    } else {
+                        if (!timer.status) {
+                            timer.run();
+                        }
+                    }
+                            timer.run();
+
+                    // 不断请求运行状态
+                    setTimeout(checkStatus, 1000);
+                }
+            }
+        });
+    };
+    checkStatus();
+
+    // 注册的timer
+    var timer = {
+        // 时间轴
+        timeline: {
+            // 执行功能
+            func: function (callback, selector, options, i) {
+                this.timer = setInterval(function() {
+                    callback(selector, options, i);
+                }, this.interval);
+            },
+            // 计时器
+            timer: null,
+            // 时间间隔
+            interval: 1000
+        },
+        // 数据展示
+        data: {
+            func: function (selector) {
+                this.timer = setInterval(function () {
+                    selector.GM('refreshGrid');
+                }, this.interval);
+            },
+            timer: null,
+            interval: 5000
+        },
+        // 日志
+        log: {
+            func: function (selector) {
+                this.timer = setInterval(function () {
+                    selector.GM('refreshGrid')
+                }, this.interval);
+            },
+            timer: null,
+            interval: 1000000
+        },
+        start: function (timer, obj) {
+            switch (timer) {
+                case 'timeline':
+                    this.timeline.func(obj);
+                    break;
+                case 'data':
+                    this.data.func(obj);
+                    break;
+                case 'log':
+                    this.log.func(obj);
+                    break;
+            }
+        },
+        clear: function () {
+            clearInterval(this.timeline.timer);
+            clearInterval(this.data.timer);
+            clearInterval(this.log.timer);
+            this.status = false;
+        },
+        run: function () {
+            this.timeline.func(showLine, timeline, options, 10);
+            this.data.func(data_table);
+            {#this.log.func(run_log_table);#}
+            this.status = true;
+        },
+        status: false
+    };
+
+    // 最近的10个时间节点 间隔1秒
+    var getTen = function (now = new Date()) {
+        var ten = [];
+        var i = 0;
+        while (++i) {
+            if (10 < i) {
+                break;
+            }
+            var time = new Date(now.getTime()-i*1000);
+            ten.push(time.format('h:mm:ss'));
+        }
+        return ten.sort();
+    };
+
+    // 显示timeliness折线
+    var showLine = function (selector, options, i) {
+        options.xAxis.data = getTen();
+
+        // 查询一个时间节点的
+        var number = 10;
+        if (i == 1) {
+            number = 1;
+        }
+
+        $.ajax({
+            url: "{% url 'timeline' %}",
+            type: 'POST',
+            data: {
+                crawler_id: "{{ id }}",
+                deadline: options.xAxis.data[number-1],
+                number: number
+            },
+            success: function (response) {
+                var line_data = [];
+                if (response['status'] == 'success') {
+                    for (var i in response['data']) {
+                        line_data.push(response['data'][i]);
+                    }
+                }
+
+                options.series.data = line_data;
+                selector.setOption(options);
+            }
+        });
+    };
+
+</script>
 <script type="text/javascript">
     // 时间轴
     var timeline = echarts.init(document.getElementById('timeline'));
@@ -135,7 +293,7 @@
             nameLocation: 'middle',
             nameTextStyle: {
                 fontStyle: 'italic',
-                padding: [10, 0]
+                padding: [15, 0, 0, 0]
             },
             axisLine: {
                 show: true
@@ -144,10 +302,10 @@
                 alignWithLabel: true
             },
             boundaryGap: true,
-            data: []
+            data: getTen()
         },
         yAxis: {
-            type: 'value',
+            type: 'value'
         },
         series: {
             data: [],
@@ -282,150 +440,15 @@
             ]
         });
     });
-</script>
-<script type="text/javascript">
-    // 爬虫应用运行状态
-    var origin_status = "{{ status }}";
-    var status = origin_status;
 
-    var checkStatus = function () {
-        $.ajax({
-            url: "{% url 'crawlerStatus' %}",
-            type: 'POST',
-            data: {
-                'id': "{{ id }}"
-            },
-            success: function (response) {
-                if (response.msg != '') {
-                    layer.alert(response['msg']);
-
-                    timer.clear();
-                } else {
-                    status = response.status;
-
-                    // 控制几个元素自动刷新
-                    if (status == 'stop') {
-                        timer.clear();
-                    } else {
-                        if (!timer.status) {
-                            timer.run();
-                        }
-                    }
-
-                    // 不断请求运行状态
-                    setTimeout(checkStatus, 1000);
-                }
-            }
+    $('#del-data').click(function () {
+        layer.confirm('确认删除本次爬取的数据？', {
+            title: '删除',
+            btn: ['取消', '确认']
+        }, function (index) {
+            layer.close(index);
+        }, function () {
+            layer.msg('OK');
         });
-    };
-    checkStatus();
-
-    // 注册的timer
-    var timer = {
-        // 时间轴
-        timeline: {
-            // 执行功能
-            func: function (callback, selector, options, i) {
-                this.timer = setInterval(function() {
-                    callback(selector, options, i);
-                }, this.interval);
-            },
-            // 计时器
-            timer: null,
-            // 时间间隔
-            interval: 1000
-        },
-        // 数据展示
-        data: {
-            func: function (selector) {
-                this.timer = setInterval(function () {
-                    selector.GM('refreshGrid');
-                }, this.interval);
-            },
-            timer: null,
-            interval: 4000
-        },
-        // 日志
-        log: {
-            func: function (selector) {
-                this.timer = setInterval(function () {
-                    selector.GM('refreshGrid')
-                }, this.interval);
-            },
-            timer: null,
-            interval: 1000000
-        },
-        start: function (timer, obj) {
-            switch (timer) {
-                case 'timeline':
-                    this.timeline.func(obj);
-                    break;
-                case 'data':
-                    this.data.func(obj);
-                    break;
-                case 'log':
-                    this.log.func(obj);
-                    break;
-            }
-        },
-        clear: function () {
-            clearInterval(this.timeline.timer);
-            clearInterval(this.data.timer);
-            clearInterval(this.log.timer);
-            this.status = false;
-        },
-        run: function () {
-            this.timeline.func(showLine, timeline, options, 10);
-            this.data.func(data_table);
-            {#this.log.func(run_log_table);#}
-            this.status = true;
-        },
-        status: false
-    };
-
-    // 最近的10个时间节点 间隔1秒
-    var getTen = function (now = new Date()) {
-        var ten = [];
-        var i = 0;
-        while (++i) {
-            if (10 < i) {
-                break;
-            }
-            var time = new Date(now.getTime()-i*1000);
-            ten.push(time.format('h:mm:ss'));
-        }
-        return ten.sort();
-    };
-
-    // 显示timeliness折线
-    var showLine = function (selector, options, i) {
-        options.xAxis.data = getTen();
-
-        // 查询一个时间节点的
-        var number = 10;
-        if (i == 1) {
-            number = 1;
-        }
-
-        $.ajax({
-            url: "{% url 'timeline' %}",
-            type: 'POST',
-            data: {
-                crawler_id: "{{ id }}",
-                deadline: options.xAxis.data[number-1],
-                number: number
-            },
-            success: function (response) {
-                var line_data = [];
-                if (response['status'] == 'success') {
-                    for (var i in response['data']) {
-                        line_data.push(response['data'][i]);
-                    }
-                }
-
-                options.series.data = line_data;
-                selector.setOption(options);
-            }
-        });
-    };
+    });
 </script>

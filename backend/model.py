@@ -79,7 +79,8 @@ class Project(models.Model):
     price = models.CharField('中标金额', default='')
     architecter = models.CharField('建造师', max_length=32, default='')
     url = models.CharField('源网址', default='')
-    crawler = models.ForeignKey(Crawler)
+    # crawler = models.ForeignKey(Crawler)
+    task = models.ForeignKey(Task)
     create_time = models.DateTimeField('添加时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     update_time = models.DateTimeField('修改时间', default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 

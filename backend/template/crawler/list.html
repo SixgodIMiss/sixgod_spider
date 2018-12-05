@@ -44,6 +44,8 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
+        var status = [];
+        var index = null;
         var crawler = $('#crawler-list');
         {#crawler.GM('clear');#}
         crawler.GM({
@@ -109,28 +111,18 @@
                     template: function (nodeData, rowData) {
                         var dom = '<div class="operate" data-id="'+rowData.id+'">';
                         if (rowData.status == 'starting') {
-                            dom += '<button class="start btn btn-default btn-sm hide">启动</button>' +
-                                '<button class="start btn btn-primary btn-sm" disabled>启动中</button>' +
+                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
+                                '<button class="starting btn btn-primary btn-sm" disabled>启动中</button>' +
                                 '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
                                 '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
                                 '<button class="stop btn btn-warning btn-sm">停止</button>' +
-                                '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
                                 '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
                         } else if (rowData.status == 'running') {
-                            dom += '<button class="start btn btn-default btn-sm hide">启动</button>' +
-                                '<button class="start btn btn-primary btn-sm hide" disabled>启动中</button>' +
+                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
+                                '<button class="starting btn btn-primary btn-sm hide" disabled>启动中</button>' +
                                 '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
                                 '<button class="run btn btn-success btn-sm" disabled>运行中</button>' +
                                 '<button class="stop btn btn-warning btn-sm">停止</button>' +
-                                '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                                '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
-                        } else if (rowData.status == 'stopping') {
-                            dom += '<button class="start btn btn-default btn-sm hide">启动</button>' +
-                                '<button class="start btn btn-primary btn-sm hide" disabled>启动中</button>' +
-                                '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
-                                '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
-                                '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                                '<button class="stopping btn btn-warning btn-sm" disabled>停止中</button>' +
                                 '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
                         } else {
                             dom += '<button class="start btn btn-primary btn-sm">启动</button>' +
@@ -138,7 +130,6 @@
                                 '<button class="delete btn btn-danger btn-sm">删除</button>' +
                                 '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
                                 '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                                '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
                                 '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
                         }
                         dom += '</div>';
@@ -162,6 +153,9 @@
                 request.status = $("select[name='run-status']").val();
                 return request;
             }
+            ,responseHandler: function (response) {
+                return response;
+            }
         });
 
         var start = function (selector) {
@@ -173,13 +167,12 @@
                 , title: '应用'
                 , btn: ['启动', '取消']
                 , yes: function (index) {
-                    selector.find('.start').addClass('hide');
-                    selector.find(".delete").addClass('hide');
-                    selector.find(".starting").removeClass('hide');
-                    selector.find(".stop").removeClass('hide');
+                    selector.find('button').addClass('hide');
+                    selector.find('.starting').removeClass('hide');
+                    selector.find('.stop').removeClass('hide');
+                    selector.parents('tr').find('td:eq(4) span').text('starting');
 
                     active(id, 'start');
-
                     layer.close(index);
                 }
             });
@@ -193,13 +186,12 @@
                 , title: '应用'
                 , btn: ['停止', '取消']
                 , yes: function (index) {
-                    selector.find('.stop').addClass('hide');
-                    selector.find(".run").addClass('hide');
-                    selector.find(".starting").addClass('hide');
-                    selector.find(".stopping").removeClass('hide');
+                    selector.find('button').addClass('hide');
+                    selector.find('.start').removeClass('hide');
+                    selector.find('.delete').removeClass('hide');
+                    selector.parents('tr').find('td:eq(4) span').text('stop');
 
                     active(id, 'stop');
-
                     layer.close(index);
                 }
             });
@@ -214,7 +206,6 @@
                 , btn: ['关闭', '取消']
                 , yes: function (index) {
                     active(id, 'del');
-
                     layer.close(index);
                 }
             });
@@ -236,7 +227,7 @@
                     }
                 }
             });
-        }
+        };
         
         $('.search-action').click(function () {
             crawler.GM('refreshGrid');
@@ -244,5 +235,9 @@
         $('select[name="run-status"]').change(function () {
             crawler.GM('refreshGrid');
         });
+
+        setInterval(function () {
+            crawler.GM('refreshGrid');
+        }, 10000);
     });
 </script>
