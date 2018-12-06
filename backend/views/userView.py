@@ -21,7 +21,7 @@ def signIn(request):
         if remember == 'on':
             request.session.set_expiry(86400)
         else:
-            request.session.set_expiry(3600)
+            request.session.set_expiry(7200)
     return JsonResponse(info)
 
 
@@ -32,3 +32,8 @@ def checkLogin(request):
         return HttpResponseRedirect('/login')
     else:
         return user_id
+
+
+def logout(request):
+    print(request.session)
+    return HttpResponseRedirect('/login')

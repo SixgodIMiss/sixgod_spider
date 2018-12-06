@@ -61,18 +61,18 @@
                 {
                     key: 'name',
                     text: '名称',
-                    width: '25%',
+                    width: '30%',
                     template: function (nodeData, rowData) {
                         return '<a href="'+'{% url "crawlerTask" %}'+'?&id='+rowData.id+'" title="查看任务详情" style="margin-left: 5px; font-size: 16px">'+rowData.name+'</a>';
                     }
                 },
                 {
-                    key: 'config',
-                    text: '配置',
-                    width: '5%',
+                    key: 'area',
+                    text: '地区',
+                    width: '15%',
                     align: 'center',
                     template: function (nodeData, rowData) {
-                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" title="查看详情">详情</a>';
+                        return '<span style="margin-left: 5px;">'+rowData.province+'-'+rowData.city+'</span>';
                     }
                 },
                 {
@@ -84,20 +84,12 @@
                         return '<span style="margin-left: 5px; color: #999;">'+rowData.status+'</span>';
                     }
                 },
-                {
-                    key: 'area',
-                    text: '地区',
-                    width: '12%',
-                    align: 'center',
-                    template: function (nodeData, rowData) {
-                        return '<span style="margin-left: 5px;">'+rowData.province+'-'+rowData.city+'</span>';
-                    }
-                },
+
                 {
                     key: 'user',
                     text: '创建者',
                     align: 'center',
-                    width: '10%'
+                    width: '12%'
                 },
                 {
                     key: 'create_time',
@@ -106,36 +98,13 @@
                     width: '15%'
                 },
                 {
-                    key: 'operate',
-                    text: '操作',
+                    key: 'config',
+                    text: '配置',
+                    align: 'center',
                     template: function (nodeData, rowData) {
-                        var dom = '<div class="operate" data-id="'+rowData.id+'">';
-                        if (rowData.status == 'starting') {
-                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
-                                '<button class="starting btn btn-primary btn-sm" disabled>启动中</button>' +
-                                '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
-                                '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
-                                '<button class="stop btn btn-warning btn-sm">停止</button>' +
-                                '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
-                        } else if (rowData.status == 'running') {
-                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
-                                '<button class="starting btn btn-primary btn-sm hide" disabled>启动中</button>' +
-                                '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
-                                '<button class="run btn btn-success btn-sm" disabled>运行中</button>' +
-                                '<button class="stop btn btn-warning btn-sm">停止</button>' +
-                                '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
-                        } else {
-                            dom += '<button class="start btn btn-primary btn-sm">启动</button>' +
-                                '<button class="starting btn btn-primary btn-sm hide" disabled>启动中</button>' +
-                                '<button class="delete btn btn-danger btn-sm">删除</button>' +
-                                '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
-                                '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                                '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
-                        }
-                        dom += '</div>';
-                        return dom;
+                        return '<a href="'+'{% url "crawlerInfo" %}'+'?&id='+rowData.id+'" title="查看详情">详情</a>';
                     }
-                },
+                }
             ]
             ,ajax_success: function (response) {
                 $('.operate .start').click(function () {

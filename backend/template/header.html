@@ -39,7 +39,7 @@
             <h2 id="home" style="cursor: pointer;">爬虫应用管理系统</h2>
         </div>
         <div class="pull-right login-register">
-            {{ request.session.user_name }} | <a href="">退出</a>
+            <span style="font-size: 16px;"><i>{{ request.session.user_name }}</i></span> | <a href="{% url 'logout' %}">退出</a>
         </div>
     </div>
     <hr/>

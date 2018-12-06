@@ -1,4 +1,6 @@
 {% include "header.html" %}
+{% load staticfiles %}
+
 <style type="text/css">
     .basic-info, .data-log {
         padding: 10px;
@@ -24,17 +26,37 @@
     .well {
         padding: 2px;
     }
-    {#.nav {#}
-    {#    padding-top: 2px;#}
-    {#    padding-left: 1px;#}
-    {#}#}
+    #basic-num {
+        font-size: 16px;
+        color: #666;
+    }
+    .status-btn {
+        margin-right: 50px;
+    }
+
 </style>
 
 <div class="center">
     {% include "nav.html" %}
     <div class="main">
         <a href="javascript:history.go(-1);" class="back">返回上一步</a>
-        <h3>爬取结果展示</h3>
+        <h3 style="overflow: hidden">
+            <div class="pull-left">爬虫应用详情</div>
+            <div class="status-btn pull-right">
+                <button class="start btn btn-primary hide">启动</button>
+                <button class="starting btn btn-primary hide" disabled>启动中
+                    <img src="{% static 'images/loading.gif' %}" style="width: 17px;">
+                </button>
+                <button class="delete btn btn-danger hide">删除</button>
+                <button class="run btn btn-success hide" disabled>运行中
+                    <img src="{% static 'images/loading.gif' %}" style="width: 17px;">
+                </button>
+                <button class="stop btn btn-warning hide">停止</button>
+                <button class="updated btn btn-info hide" disabled>更新中
+                    <img src="{% static 'images/loading.gif' %}" style="width: 17px;">
+                </button>
+            </div>
+        </h3>
         <div class="basic-info">
             <div class="pull-left basic-panel">
                 <div class="panel panel-default">
@@ -61,7 +83,7 @@
                             </li>
                             <li class="list-group-item">
                                 <label>爬取数据：</label>
-                                <span id="basic-num">0</span>条
+                                <span id="basic-num">0</span> 条
                             </li>
                             <li class="list-group-item">
                                 <label>当前爬取进度：</label>
@@ -123,9 +145,37 @@
 {% include "crawler/update.html" %}
 
 <script type="text/javascript">
-    // 爬虫应用运行状态
+    // 爬虫应用ID
+    var crawler_id = "{{ id }}";
+
+    // 应用运行状态
     var origin_status = "{{ status }}";
     var status = origin_status;
+
+    // 切换操作按钮
+    var switchFlag = true; // 即时操作会与延时的状态检查有冲突
+    var switchBtn = function (status) {
+        if (switchFlag) {
+            var btn = $('div.status-btn');
+            switch (status) {
+                case 'stop':
+                    btn.find('button').addClass('hide');
+                    btn.find('button.start').removeClass('hide');
+                    btn.find('button.delete').removeClass('hide');
+                    break;
+                case 'starting':
+                    btn.find('button').addClass('hide');
+                    btn.find('button.starting').removeClass('hide');
+                    btn.find('button.stop').removeClass('hide');
+                    break;
+                case 'running':
+                    btn.find('button').addClass('hide');
+                    btn.find('button.run').removeClass('hide');
+                    btn.find('button.stop').removeClass('hide');
+                    break;
+            }
+        }
+    };
 
     var checkStatus = function () {
         $.ajax({
@@ -143,6 +193,7 @@
                     status = response.status;
                     $('#basic-status').text(status);
                     $('#basic-num').text(response.number);
+                    switchBtn(status);
 
                     // 控制几个元素自动刷新
                     if (status == 'stop') {
@@ -152,7 +203,6 @@
                             timer.run();
                         }
                     }
-                            timer.run();
 
                     // 不断请求运行状态
                     setTimeout(checkStatus, 1000);
@@ -212,8 +262,11 @@
         },
         clear: function () {
             clearInterval(this.timeline.timer);
+            this.timeline.timer = null;
             clearInterval(this.data.timer);
+            this.data.timer = null;
             clearInterval(this.log.timer);
+            this.log.timer = null;
             this.status = false;
         },
         run: function () {
@@ -271,8 +324,73 @@
         });
     };
 
+    // 按钮操作
+    var operate = function (op) {
+        var str = '';
+        var next_status = '';
+        switch (op) {
+            case 'start':
+                str = '启动';
+                next_status = 'starting';
+                break;
+            case 'stop':
+                str = '停止';
+                next_status = 'stop';
+                break;
+            case 'del':
+                str = '删除';
+                next_status = 'stop';
+                break;
+        }
+        layer.confirm('确认<span style="text-decoration:underline">'+str+'</span> <span style="color: blue">'+"{{ name }}"+'</span> ?', {
+            time: 0 //不自动关闭
+            , title: '应用'
+            , btn: [str, '取消']
+            , yes: function (index) {
+                active(op);
+                layer.close(index);
+                switchBtn(next_status);
+                switchFlag = false;
+            }
+        });
+    };
+    var active = function (active) {
+        $.ajax({
+            url: "{% url 'crawlerHandler' %}",
+            type: 'POST',
+            data: {
+                id: crawler_id,
+                active: active
+            },
+            success: function (response) {
+                if (response.status == 'fail') {
+                    layer.alert(response.reason, {
+                        'title': '原因'
+                    });
+                } else {
+                    if (active == 'del') {
+                        window.location.href = "{% url 'index' %}";
+                    } else if ((active == 'start' || active == 'stop') && !timer.status) {
+                        // 有操作就把表刷一下 防止延时太长
+                        $('#data-list').GM('refreshGrid');
+                        $('#run-log-list').GM('refreshGrid');
+
+                        // 按钮操作复原
+                        switchFlag = true;
+
+                        // 计时器启动
+                        timer.run();
+                    }
+                }
+            }
+        });
+    };
+
 </script>
 <script type="text/javascript">
+    // 启动状态按钮
+    switchBtn(status);
+
     // 时间轴
     var timeline = echarts.init(document.getElementById('timeline'));
     var options = {
@@ -450,5 +568,15 @@
         }, function () {
             layer.msg('OK');
         });
+    });
+
+    $('button.start').click(function () {
+        operate('start');
+    });
+    $('button.stop').click(function () {
+        operate('stop');
+    });
+    $('button.delete').click(function () {
+        operate('del');
     });
 </script>
