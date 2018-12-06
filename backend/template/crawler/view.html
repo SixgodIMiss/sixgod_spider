@@ -11,7 +11,7 @@
     }
     .basic-pic {
         width: 59%;
-        height: 367px;
+        height: 369px;
     }
     .list-group-item {
         padding: 6px;
@@ -64,14 +64,10 @@
                         <h4><strong>基本信息</strong></h4>
                     </div>
                     <div class="panel-body">
-                        <ul class="list-group">
+                        <ul class="list-group" style="margin-bottom: 0;">
                             <li class="list-group-item">
                                 <label>应用：</label>
                                 <span>{{ name }}</span>
-                            </li>
-                            <li class="list-group-item">
-                                <label>运行状态：</label>
-                                <span id="basic-status">{{ status }}</span>
                             </li>
                             <li class="list-group-item">
                                 <label>启动时间：</label>
@@ -80,6 +76,11 @@
                             <li class="list-group-item">
                                 <label>结束时间：</label>
                                 <span id="basic-stop">{{ end }}</span>
+                            </li>
+                            <br/>
+                            <li class="list-group-item">
+                                <label>运行状态：</label>
+                                <span id="basic-status">{{ status }}</span>
                             </li>
                             <li class="list-group-item">
                                 <label>爬取数据：</label>
@@ -342,16 +343,17 @@
                 next_status = 'stop';
                 break;
         }
+
         layer.confirm('确认<span style="text-decoration:underline">'+str+'</span> <span style="color: blue">'+"{{ name }}"+'</span> ?', {
-            time: 0 //不自动关闭
-            , title: '应用'
-            , btn: [str, '取消']
-            , yes: function (index) {
-                active(op);
-                layer.close(index);
-                switchBtn(next_status);
-                switchFlag = false;
-            }
+            title: '应用',
+            btn: ['取消', str]
+        }, function (index) {
+            layer.close(index);
+        }, function (index) {
+            active(op);
+            switchBtn(next_status);
+            switchFlag = false;
+            layer.close(index);
         });
     };
     var active = function (active) {
