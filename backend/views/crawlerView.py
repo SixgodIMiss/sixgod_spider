@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import os, psutil, signal
+import os, signal
+import sys
+# sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider'))
+# print(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'sixgod_spider.settings'
+os.environ['SCRAPY_SETTINGS_MODULE'] = 'spiders.settings'
+
 import django  # 多进程用
 django.setup()
-import sys
-import multiprocessing
-import subprocess
-import json
+import multiprocessing, subprocess
 import datetime, time
 import scrapy
 from scrapy.crawler import CrawlerRunner, CrawlerProcess

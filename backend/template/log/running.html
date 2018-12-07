@@ -1,0 +1,35 @@
+{% load staticfiles %}
+{% include 'header.html' %}
+
+<div class="center">
+    {% include 'nav.html' %}
+    <div class="main">
+        <h3>应用
+            <a class="btn btn-primary" style="margin: 10px" href="{% url 'crawlerConfig' %}">
+                <i class="fa fa-plus"></i> 创建
+            </a>
+        </h3>
+        <div class="data-list">
+            <div style="padding: 20px 10px;">
+                <div class="search-area">
+                    <div class="sa-ele">
+                        <input class="se-con" name="name" placeholder="应用名称"/>
+                    </div>
+                    <div class="sa-ele">
+                        <button class="search-action">搜索</button>
+                    </div>
+                    <div class="sa-ele">
+                        <select name="run-status" id="run-status">
+                            <option value="0">全部</option>
+                            <option value="running">运行中</option>
+                            <option value="stop">停止</option>
+                        </select>
+                    </div>
+                </div>
+                <table id="crawler-list" grid-manager="crawler-list"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}

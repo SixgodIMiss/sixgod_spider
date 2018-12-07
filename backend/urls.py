@@ -24,5 +24,7 @@ backend_urlpatterns = [
 
     url(r'^data/timeline$', dataView.timeline, name='timeline'),
     url(r'^data/list', dataView.dataList, name='dataList'),
+
+    url(r'^data/list', dataView.dataList, name='dataList'),
 ]
 

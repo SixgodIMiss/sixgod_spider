@@ -148,6 +148,7 @@
 <script type="text/javascript">
     // 爬虫应用ID
     var crawler_id = "{{ id }}";
+    console.log(crawler_id);
 
     // 应用运行状态
     var origin_status = "{{ status }}";
@@ -183,7 +184,7 @@
             url: "{% url 'crawlerStatus' %}",
             type: 'POST',
             data: {
-                'id': "{{ id }}"
+                'id': crawler_id
             },
             success: function (response) {
                 if (response.msg != '') {

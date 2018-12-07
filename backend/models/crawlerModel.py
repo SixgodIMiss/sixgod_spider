@@ -219,6 +219,7 @@ def taskInfo(crawler_id):
     result = {}
     try:
         crawler = Crawler.objects.get(id=crawler_id)
+        print(crawler_id)
         if crawler:
             result = {
                 'id': crawler.id,
@@ -226,7 +227,7 @@ def taskInfo(crawler_id):
                 'name': crawler.config.name,
                 'status': crawler.task.status,
                 'user_id': crawler.config.user_id,
-                'start': crawler.task.start.strftime("%Y-%m-%d %H:%M:%S"),
+                'start': crawler.task.start.strftime("%Y-%m-%d %H:%M:%S")if crawler.task.start else '',
                 'end': crawler.task.end.strftime("%Y-%m-%d %H:%M:%S") if crawler.task.end else ''
             }
     except Exception as e:
