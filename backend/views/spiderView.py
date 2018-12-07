@@ -18,7 +18,8 @@ def spiderList(request):
     params = {
         'page': post.get('cPage', 1),
         'size': post.get('pSize', 20),
-        'name': post.get('name', None)
+        'name': post.get('name', None),
+        'status': post.get('status', 0)
     }
     result = spiderModel.spiderList(params)
     return JsonResponse(result)

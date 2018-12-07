@@ -17,14 +17,12 @@ backend_urlpatterns = [
     url(r'^crawlerTask/$', crawlerView.taskInfo, name='crawlerTask'),
     url(r'^crawlerStatus/$', crawlerView.checkStatus, name='crawlerStatus'),
 
-    url(r'^spiderIndex/$', spiderView.index, name='spiderIndex'),
+    url(r'^spiderView/$', spiderView.index, name='spiderView'),
     url(r'^spiderList/$', spiderView.spiderList, name='spiderList'),
     url(r'^spiderConfig/$', spiderView.config, name='spiderConfig'),
     url(r'^spiderSave/$', spiderView.save, name='spiderSave'),
 
     url(r'^data/timeline$', dataView.timeline, name='timeline'),
-    url(r'^data/list', dataView.dataList, name='dataList'),
-
     url(r'^data/list', dataView.dataList, name='dataList'),
 ]
 

@@ -1,27 +1,37 @@
 {% load staticfiles %}
 {% include 'header.html' %}
+<style type="text/css">
+    select {
+        width: 50px;
+        height: 24px;
+        margin-left: 10px;
+    }
+</style>
 
 <div class="center">
     {% include 'nav.html' %}
 
     <div class="main">
-        <h3>程序
-            <a class="btn btn-primary" style="margin: 10px" href="{% url 'spiderConfig' %}">
-                <i class="fa fa-plus"></i> 创建
-            </a>
-        </h3>
+        <h3>程序</h3>
 
         <div class="data-list">
             <div style="padding: 20px 10px;">
                 <div class="search-area">
                     <div class="sa-ele">
                         <input class="se-con" name="name" placeholder="程序名称"/>
+                        <select name="status">
+                            <option value="0" selected>全部</option>
+                            <option value="2">200</option>
+                            <option value="4">400</option>
+                            <option value="5">500</option>
+                            <option value="6">600</option>
+                        </select>
                     </div>
                     <div class="sa-ele">
                         <button class="search-action">搜索</button>
                     </div>
                 </div>
-                <table id="crawler-list" grid-manager="crawler-list"></table>
+                <table id="spider-list" grid-manager="spider-list"></table>
             </div>
         </div>
     </div>
@@ -31,10 +41,12 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        var crawler = $('#crawler-list');
-        {#crawler.GM('clear');#}
+        var crawler = $('#spider-list');
         crawler.GM({
-            ajax_data: "{% url 'spiderList' %}"
+            disableCache: true
+            ,height: '480px'
+            ,pageSize: 10
+            ,ajax_data: "{% url 'spiderList' %}"
             ,ajax_type: 'POST'
             ,query: {pluginId: 1}
             ,supportAjaxPage: true
@@ -43,86 +55,148 @@
                 {
                     key: 'name',
                     text: '名称',
-                    width: '250px',
-                    template: function (nodeData, rowData) {
-                        return '<span style="margin-left: 5px; font-size: 16px">'+rowData.name+'</span>';
-                    }
+                    width: '12%'
                 },
                 {
-                    key: 'area',
-                    text: '地区',
-                    width: '15%',
-                    align: 'center',
-                    template: function (nodeData, rowData) {
-                        return '<span style="margin-left: 5px;">'+rowData.province+'-'+rowData.city+'</span>';
-                    }
+                    key: 'source',
+                    text: '网站',
+                    width: '18%'
                 },
                 {
-                    key: 'user',
-                    text: '创建者',
-                    align: 'center',
-                    width: '10%'
-                },
-                {
-                    key: 'create_time',
-                    text: '创建时间',
-                    align: 'center',
-                    width: '15%'
-                },
-                {
-                    key: 'create_time',
-                    text: '创建时间',
-                    align: 'center',
-                    width: '15%'
-                },
-                {
-                    key: 'operate',
-                    text: '操作',
-                    template: function (nodeData, rowData) {
-                        var dom = '<div class="operate" data-id="'+rowData.id+'">';
-                        if (rowData.updated == 3) {
-                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
-                            '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
-                            '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
-                            '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                            '<button class="updated btn btn-info btn-sm" disabled>更新中</button>';
-                        } else if (rowData.status == 1) {
-                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
-                            '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
-                            '<button class="run btn btn-success btn-sm " disabled>运行中</button>' +
-                            '<button class="stop btn btn-warning btn-sm ">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                            '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
-                        } else {
-                            dom += '<button class="start btn btn-primary btn-sm">启动</button>' +
-                            '<button class="delete btn btn-danger btn-sm">删除</button>' +
-                            '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
-                            '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                            '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
+                    key: 'status',
+                    text: '状态',
+                    width: '6%',
+                    template: function (value, row) {
+                        var str = '<span style="color: ';
+                        var color = 'black';
+                        switch (value) {
+                            case 200:
+                                color = 'green';
+                                break;
+                            case 400:
+                            case 401:
+                            case 402:
+                            case 403:
+                                color = 'grey;';
+                                break;
+                            case 500:
+                            case 503:
+                                color = '#efd511;';
+                                break;
+                            case 600:
+                            case 601:
+                            case 602:
+                                color = 'red;';
+                                break;
                         }
-                        dom += '</div>';
-                        return dom;
+                        str += color + '">' + value + '</span>';
+                        return str;
                     }
+                },
+                {
+                    key: 'url_name',
+                    text: '爬取首页',
+                    width: '12%',
+                    template: function (value) {
+                        var str = '';
+                        $.ajax({
+                            url: value,
+                            type: 'GET',
+                            statusCode: {
+                                500: function () {
+                                    console.log(666);
+                                },
+                                200: function () {
+                                    console.log(222);
+                                },
+                                404: function () {
+                                    console.log(222);
+                                }
+                            },
+                            complete: function (x, y) {
+                                {#console.log('x', x);#}
+                                {#console.log('y', y);#}
+                            }
+                        });
+                        return '<a href="'+value+'" title="'+value+'" target="_blank">'+value+'</a>';
+                    }
+                },
+                {
+                    key: 'province',
+                    text: '省',
+                    width: '5%'
+                },
+                {
+                    key: 'city',
+                    text: '市',
+                    width: '5%'
+                },
+                {
+                    key: 'county',
+                    text: '区县',
+                    width: '5%'
+                },
+                {
+                    key: 'type',
+                    text: '字段',
+                    width: '5%',
+                    align: 'center',
+                    template: function (value) {
+                        var str = '';
+                        switch (value) {
+                            case 0:
+                                str = '中标';
+                                break;
+                            case 1:
+                                str = '不良';
+                                break;
+                            case 2:
+                                str = '荣誉';
+                                break;
+                            case 3:
+                                str = '信用';
+                                break;
+                            case 4:
+                                str = '企业';
+                                break;
+                            case 5:
+                                str = '法院';
+                                break;
+                        }
+                        return str;
+                    }
+                },
+                {
+                    key: 'who',
+                    text: '作者',
+                    width: '5%',
+                    align: 'center'
+                },
+                {
+                    key: 'update_who',
+                    text: '维护',
+                    width: '5%',
+                    align: 'center'
+                },
+                {
+                    key: 'check_time',
+                    text: '维护时间',
+                    width: '8%',
+                    align: 'center'
                 },
             ]
-            ,ajax_success: function (response) {
-                $('.operate .start').click(function () {
-                    {#start($(this).parent('.operate'));#}
-                });
-                $('.operate .stop').click(function () {
-                    {#stop($(this).parent('.operate'));#}
-                });
-                $('.operate .delete').click(function () {
-                    {#del($(this).parent('.operate'));#}
-                });
-            }
             ,requestHandler: function(request){
-                {#request.crawler_name = $("input[name='name']").val();#}
-                {#request.status = $("select[name='run-status']").val();#}
+                request.name = $.trim($('input[name="name"]').val());
+                request.status = $.trim($('select[name="status"]').val());
                 return request;
             }
+        });
+
+        $('button.search-action').click(function () {
+            crawler.GM('refreshGrid');
+        });
+        $('select[name="status"]').change(function () {
+            crawler.GM('refreshGrid');
         });
     });
 </script>

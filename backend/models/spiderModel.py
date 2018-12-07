@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from backend.model import Spider
+from backend.model import Spider, SlfSpider
 
 
 def spiderList(params):
     page = params['page']
     size = params['size']
     name = params['name']
+    status = params['status']
+    # print(status == 0)
 
     # 查询
-    pre = Spider.objects.order_by('province')
+    pre = SlfSpider.objects.using('slf').order_by('status')
     if name:
-        pre = pre.filter(name__contains=name)
-    lists = pre.values('id', 'name', 'province', 'city', 'type', 'create_time', 'update_time')
+        pre = pre.filter(program_name__contains=name)
+    if status:
+        pre = pre.filter(status__contains=status)
+    lists = pre.values()
+
     # 分页
     paginator = Paginator(lists, size)
     try:
@@ -25,17 +30,23 @@ def spiderList(params):
     result = {
         'status': 'success',
         'data': [],
-        'totals': items.number
+        'totals': paginator.count
     }
     # 格式化
     for item in items:
         result['data'].append({
             'id': item['id'],
-            'name': item['name'],
-            'province': item['province'],
-            'city': item['city'],
-            'create_time': item['create_time'].strftime("%Y-%m-%d %H:%M:%S"),
-            'update_time': item['update_time'].strftime("%Y-%m-%d %H:%M:%S")
+            'name': item['program_name'],
+            'source': item['source'],
+            'status': item['status'],
+            'url_name': item['url_name'],
+            'province': item['ch_area'],
+            'city': item['ch_city'],
+            'county': item['ch_region'],
+            'type': item['type'],
+            'who': item['who'],
+            'update_who': item['update_who'],
+            'check_time': item['check_time'].strftime("%Y-%m-%d") if item['check_time'] else ''
         })
     return result
 

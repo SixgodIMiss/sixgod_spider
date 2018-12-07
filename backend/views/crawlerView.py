@@ -5,7 +5,7 @@ import sys
 # sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider'))
 # print(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'sixgod_spider.settings'
-os.environ['SCRAPY_SETTINGS_MODULE'] = 'spiders.settings'
+# os.environ['SCRAPY_SETTINGS_MODULE'] = 'spider.spiders.settings'
 
 import django  # 多进程用
 django.setup()

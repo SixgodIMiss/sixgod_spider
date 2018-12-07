@@ -86,3 +86,23 @@ class Project(models.Model):
 
     class Meta:
         db_table = 'project'
+
+
+# slf爬虫程序
+class SlfSpider(models.Model):
+    id = models.Index
+    program_name = models.CharField('程序名')
+    source = models.CharField('网站名')
+    url_name = models.CharField('详情首页')
+    ch_area = models.CharField('省')
+    ch_city = models.CharField('市')
+    ch_region = models.CharField('区县')
+    status = models.CharField('状态')
+    type = models.IntegerField('爬取字段')
+    who = models.CharField('作者')
+    update_who = models.CharField('维护者')
+    check_time = models.DateField('检查时间')
+    add_time = models.DateTimeField('创建时间')
+
+    class Meta:
+        db_table = 'crawler_url_status'
