@@ -21,6 +21,8 @@ backend_urlpatterns = [
     url(r'^spiderList/$', spiderView.spiderList, name='spiderList'),
     url(r'^spiderConfig/$', spiderView.config, name='spiderConfig'),
     url(r'^spiderSave/$', spiderView.save, name='spiderSave'),
+    url(r'^spiderMonitor/$', spiderView.monitor, name='spiderMonitor'),
+    url(r'^spiderMonitorList/$', spiderView.monitorList, name='monitorList'),
 
     url(r'^data/timeline$', dataView.timeline, name='timeline'),
     url(r'^data/list', dataView.dataList, name='dataList'),

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
+import os, datetime
 import subprocess
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
@@ -13,7 +13,8 @@ def index(request):
 
 
 def spiderList(request):
-    user_id = userView.checkLogin(request)
+    userView.checkLogin(request)
+
     post = request.POST
     params = {
         'page': post.get('cPage', 1),
@@ -57,5 +58,35 @@ def save(request):
             result['status'] = 'success'
         else:
             result['msg'] = '添加失败'
+
+    return JsonResponse(result)
+
+
+def monitor(request):
+    userView.checkLogin(request)
+    return render(request, 'spider/monitor.html', {})
+
+
+# 监控记录
+def monitorList(request):
+    userView.checkLogin(request)
+    post = request.POST
+    params = {
+        'name': post.get('name', None),
+        'page': post.get('cPage', 2),
+        'size': post.get('pSize', 10),
+        'status': post.get('status', None)
+    }
+    type = post.get('type', None)
+    if type == "1":
+        result = spiderModel.monitor(params)
+    elif type == "2":
+        result = spiderModel.monitorUnique(params)
+    else:
+        result = {
+            'status': 'success',
+            'data': [],
+            'totals': 0
+        }
 
     return JsonResponse(result)

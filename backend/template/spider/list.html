@@ -21,10 +21,10 @@
                         <input class="se-con" name="name" placeholder="程序名称"/>
                         <select name="status">
                             <option value="0" selected>全部</option>
-                            <option value="2">200</option>
-                            <option value="4">400</option>
-                            <option value="5">500</option>
-                            <option value="6">600</option>
+                            <option value="2">2x</option>
+                            <option value="4">4x</option>
+                            <option value="5">5x</option>
+                            <option value="6">6x</option>
                         </select>
                     </div>
                     <div class="sa-ele">
@@ -40,6 +40,34 @@
 {% include 'footer.html' %}
 
 <script type="text/javascript">
+    var checkStatus = function (selector, url) {
+        var http = null;
+        if (window.XMLHttpRequest) {
+            http = new XMLHttpRequest();
+        } else if (window.ActiveXObject) {
+            http = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+
+        if (http!=null) {
+            http.selector = selector;
+            http.onreadystatechange = function () {
+                console.log(http);
+            };
+            http.open("GET", url, true);
+            http.send(null);
+        } else {
+            alert("Your browser does not support XMLHTTP.");
+        }
+
+    };
+
+    function state_Change(http) {
+        console.log(http);
+        if (http.readyState == 4) {// 4 = "loaded"
+            console.log(http);
+        }
+    };
+
     $(document).ready(function () {
         var crawler = $('#spider-list');
         crawler.GM({
@@ -97,27 +125,7 @@
                     key: 'url_name',
                     text: '爬取首页',
                     width: '12%',
-                    template: function (value) {
-                        var str = '';
-                        $.ajax({
-                            url: value,
-                            type: 'GET',
-                            statusCode: {
-                                500: function () {
-                                    console.log(666);
-                                },
-                                200: function () {
-                                    console.log(222);
-                                },
-                                404: function () {
-                                    console.log(222);
-                                }
-                            },
-                            complete: function (x, y) {
-                                {#console.log('x', x);#}
-                                {#console.log('y', y);#}
-                            }
-                        });
+                    template: function (value, row) {
                         return '<a href="'+value+'" title="'+value+'" target="_blank">'+value+'</a>';
                     }
                 },
@@ -189,6 +197,13 @@
                 request.name = $.trim($('input[name="name"]').val());
                 request.status = $.trim($('select[name="status"]').val());
                 return request;
+            }
+            ,ajax_success: function (response) {
+                var res = JSON.parse(response);
+                for (var i in res['data']) {
+                    var selector = $('#spider-list tbody tr:eq('+i+') td:eq(5)');
+                    checkStatus(selector, res['data'][i]['url_name']);
+                }
             }
         });
 

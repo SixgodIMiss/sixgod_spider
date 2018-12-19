@@ -1,0 +1,179 @@
+{% load staticfiles %}
+{% include 'header.html' %}
+<style type="text/css">
+    select {
+        width: 50px;
+        height: 24px;
+        margin-left: 10px;
+    }
+</style>
+
+<div class="center">
+    {% include 'nav.html' %}
+
+    <div class="main">
+        <h3>爬虫程序监控</h3>
+        <div class="data-list">
+            <div style="padding: 20px 10px;">
+                <div class="search-area">
+                    <div class="sa-ele">
+                        <input class="se-con" name="name" placeholder="程序名称"/>
+                        <select name="status">
+                            <option value="0" selected>全部</option>
+                            <option value="1">停止</option>
+                            <option value="2">运行</option>
+                            <option value="3">僵死</option>
+                            <option value="4">错误</option>
+                        </select>
+                    </div>
+                    <div class="sa-ele">
+                        <button class="search-action">搜索</button>
+                    </div>
+                    <div class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-primary active" id="record-all">
+                            <input type="radio" autocomplete="off" name="options" checked>所有
+                        </label>
+                        <label class="btn btn-primary" id="record-curr">
+                            <input type="radio" autocomplete="off" name="options">当前
+                        </label>
+                    </div>
+                </div>
+                <table id="monitor-list" grid-manager="monitor-list"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
+
+<script type="text/javascript">
+    var type = 1;
+    
+    $(document).ready(function () {
+        var monitor = $('#monitor-list');
+        monitor.GM({
+            disableCache: true
+            ,height: '480px'
+            ,pageSize: 10
+            ,ajax_data: "{% url 'monitorList' %}"
+            ,ajax_type: 'POST'
+            ,query: {}
+            ,supportAjaxPage: true
+            ,supportMenu: false
+            ,columnData: [
+                {
+                    key: 'name',
+                    text: '名称',
+                    width: "20%",
+                    template: function (value) {
+                        var url = "{% url 'spiderView' %}";
+                        return '<a href="'+url+'" target="_blank">'+value+'</a>';
+                    }
+                },
+                {
+                    key: 'status',
+                    text: '运行状态',
+                    width: "8%",
+                    align: "center",
+                    template: function (value) {
+                        var str = '';
+                        var color = '';
+                        switch (value) {
+                            case 1:
+                                str = '停止';
+                                color = 'text-primary';
+                                break;
+                            case 2:
+                                str = '运行';
+                                color = 'text-success';
+                                break;
+                            case 3:
+                                str = '僵死';
+                                color = 'text-warning';
+                                break;
+                            case 4:
+                                str = '错误';
+                                color = 'text-danger';
+                                break;
+                        }
+                        return '<span class="'+color+'">'+str+'</span>';
+                    }
+                },
+                {
+                    key: 'source',
+                    text: '网站',
+                    width: "24%",
+                    template: function (value, row) {
+                        return '<a href="'+row['url']+'" title="'+row['url']+'" target="_blank">'+value+'</a>';
+                    }
+                },
+                {
+                    key: 'reason',
+                    text: '备注',
+                    width: "20%",
+                    template: function (value) {
+                        return '<span>&nbsp;&nbsp;&nbsp;'+value+'</span>';
+                    }
+                },
+                {
+                    key: 'create_time',
+                    text: '执行时间',
+                    align: "center"
+                }
+            ]
+            ,requestHandler: function(request){
+                request.name = $.trim($('input[name="name"]').val());
+                request.type = type;
+                request.status = $.trim($('select[name="status"]').val());
+                return request;
+            }
+        });
+
+        $('button.search-action').click(function () {
+            if (type == 1) {
+                current_timer = timer(6000, current_timer);
+            } else {
+                current_timer = timer(16000, current_timer);
+            }
+
+            monitor.GM('refreshGrid');
+        });
+        $('select[name="status"]').change(function () {
+            if (type == 1) {
+                current_timer = timer(6000, current_timer);
+            } else {
+                current_timer = timer(16000, current_timer);
+            }
+
+            monitor.GM('refreshGrid');
+        });
+
+        $('#record-all').click(function () {
+            type = 1;
+            current_timer = timer(6000, current_timer);
+            $('select[name="status"]').show();
+
+            monitor.GM('refreshGrid');
+        });
+        $('#record-curr').click(function () {
+            type = 2;
+            current_timer = timer(16000, current_timer);
+            $('select[name="status"]').find('option[value="0"]').select();
+            $('select[name="status"]').hide();
+
+            monitor.GM('refreshGrid');
+        });
+
+        var timer = function (limit, timer) {
+            if (typeof timer != 'undefined' && timer) {
+                clearInterval(timer);
+            }
+
+            return setInterval(function () {
+                monitor.GM('refreshGrid')
+            }, limit);
+        };
+
+        var current_timer = timer(6000);
+    });
+</script>

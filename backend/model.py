@@ -106,3 +106,17 @@ class SlfSpider(models.Model):
 
     class Meta:
         db_table = 'crawler_url_status'
+
+
+# slf监控
+class SlfMonitor(models.Model):
+    id = models.Index
+    spider = models.ForeignKey(SlfSpider)
+    status = models.IntegerField('运行状态')
+    reason = models.CharField('原因')
+    hash = models.CharField('hash值')
+    create_time = models.CharField(default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+    class Meta:
+        db_table = 'crawler_monitor'
+
