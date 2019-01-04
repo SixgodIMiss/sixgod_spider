@@ -37,6 +37,10 @@
                             <input type="radio" autocomplete="off" name="options">当前
                         </label>
                     </div>
+
+                    <div class="pull-right">
+                        <button class="btn btn-primary btn-sm" id="fresh">停止刷新</button>
+                    </div>
                 </div>
                 <table id="monitor-list" grid-manager="monitor-list"></table>
             </div>
@@ -48,6 +52,7 @@
 
 <script type="text/javascript">
     var type = 1;
+    var fresh = true;
     
     $(document).ready(function () {
         var monitor = $('#monitor-list');
@@ -60,6 +65,7 @@
             ,query: {}
             ,supportAjaxPage: true
             ,supportMenu: false
+            ,showFooterRefresh: true
             ,columnData: [
                 {
                     key: 'name',
@@ -81,11 +87,11 @@
                         switch (value) {
                             case 1:
                                 str = '停止';
-                                color = 'text-primary';
+                                color = 'text-success';
                                 break;
                             case 2:
                                 str = '运行';
-                                color = 'text-success';
+                                color = 'text-primary';
                                 break;
                             case 3:
                                 str = '僵死';
@@ -133,7 +139,7 @@
             if (type == 1) {
                 current_timer = timer(6000, current_timer);
             } else {
-                current_timer = timer(16000, current_timer);
+                current_timer = timer(15000, current_timer);
             }
 
             monitor.GM('refreshGrid');
@@ -142,7 +148,7 @@
             if (type == 1) {
                 current_timer = timer(6000, current_timer);
             } else {
-                current_timer = timer(16000, current_timer);
+                current_timer = timer(15000, current_timer);
             }
 
             monitor.GM('refreshGrid');
@@ -157,15 +163,35 @@
         });
         $('#record-curr').click(function () {
             type = 2;
-            current_timer = timer(16000, current_timer);
+            current_timer = timer(15000, current_timer);
             $('select[name="status"]').find('option[value="0"]').select();
             $('select[name="status"]').hide();
 
             monitor.GM('refreshGrid');
         });
+        
+        $('#fresh').click(function () {
+            fresh = true;
+            if ($(this).text() == '自动刷新') {
+                if (type == 1) {
+                    current_timer = timer(6000, current_timer);
+                } else {
+                    current_timer = timer(15000, current_timer);
+                }
+                $(this).text('停止刷新').attr('class', 'btn btn-primary btn-sm');
+            } else {
+                fresh = false;
+                clearInterval(current_timer);
+                $(this).text('自动刷新').attr('class', 'btn btn-warning btn-sm');
+            }
+        });
 
         var timer = function (limit, timer) {
-            if (typeof timer != 'undefined' && timer) {
+            if (!fresh) {
+                return null;
+            }
+
+            if ((typeof timer != 'undefined' && timer)) {
                 clearInterval(timer);
             }
 

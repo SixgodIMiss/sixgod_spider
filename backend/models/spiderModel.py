@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from backend.model import Spider, SlfSpider, SlfMonitor
 from django.db.models import Count, QuerySet
@@ -67,9 +68,10 @@ def monitor(params):
     size = params['size']
     name = params['name']
     status = params['status']
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
 
     # 查询条件
-    pre = SlfMonitor.objects.using('slf').order_by('-create_time')
+    pre = SlfMonitor.objects.using('slf').order_by('-create_time').filter(create_time__contains=today)
     if name and name != "":
         pre = pre.filter(spider__program_name__contains=name)
     if status in ["1", "2", "3", "4"]:
@@ -109,9 +111,10 @@ def monitorUnique(params):
     page = params['page']
     size = params['size']
     name = params['name']
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
 
     # 查询条件
-    pre = SlfMonitor.objects.using('slf')
+    pre = SlfMonitor.objects.using('slf').filter(create_time__contains=today)
     if name and name != "":
         pre = pre.filter(spider__program_name__contains=name)
 

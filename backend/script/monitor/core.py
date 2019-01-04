@@ -6,7 +6,6 @@ from DBUtils.PooledDB import PooledDB
 from psutil import net_if_addrs
 
 
-
 # 当前只考虑Windows
 def is_windows():
     plat = platform.system()
@@ -120,11 +119,19 @@ def get_ip():
     return ip
 
 
-def get_mac():
+def get_eth_mac():
     node = uuid.getnode()
-    address = hex(node)[2:]
-    print(node)
+    address = hex(node)[2:-1]
     return '-'.join(address[i:i+2] for i in range(0, len(address), 2))
+    # return "-".join(re.findall(r".{2}", uuid.uuid1().hex[-12:].upper()))
+
+
+def get_macs():
+    for k, v in net_if_addrs().items():
+        # print(k)
+        for item in v:
+            if item and item.family == -1:
+                print(item.address)
 
 
 MEMORY_CONVERT = 1048576  # 1024*1024
@@ -133,4 +140,4 @@ if is_windows():
 else:
     PROJECT_PATH = ''
 
-# get_mac()
+print get_macs()
