@@ -64,7 +64,7 @@ def query(params):
                 'id': str(item['id']),
                 'name': item['name'],
                 'company': item['company'],
-                'date': item['date'].strftime("%Y-%m-%d"),
+                'project_date': item['date'].strftime("%Y-%m-%d"),
                 'price': item['price'],
                 'architecter': item['architecter'],
                 'url': item['url'],

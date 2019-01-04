@@ -252,3 +252,4 @@ def checkStatus(request):
         result['status'] = 'running'
 
     return JsonResponse(result)
+

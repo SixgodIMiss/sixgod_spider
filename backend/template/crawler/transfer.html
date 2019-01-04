@@ -1,0 +1,158 @@
+<div class="modal fade" tabindex="-1" role="dialog" id="transfer-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">将本次爬取到的数据更新到</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li role="presentation" class="active">
+                            <a href="#api-post" aria-controls="api-post" role="tab" data-toggle="tab">API</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#db-post" aria-controls="db-post" role="tab" data-toggle="tab">数据库</a>
+                        </li>
+                        <input type="hidden" value="1" name="type"/>
+                    </ul>
+                    <div style="height: 10px;"></div>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active fade in" id="api-post">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">api：</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="api" class="form-control" placeholder="api地址">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">传输方式：</label>
+                                <div class="col-sm-8" style="line-height: 2.4">POST</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">参数格式：</label>
+                                <div class="col-sm-8">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="format" value="1" checked>
+                                            application/x-www-form-urlencoded
+                                        </label>
+                                    </div>
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="format" value="2">
+                                            application/json
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">传输容量：</label>
+                                <div class="col-sm-8">
+                                    <select name="per" class="form-control" style="width: 50%;">
+                                        <option value="1">10 条/ 次</option>
+                                        <option value="2">100 条/ 次</option>
+                                        <option value="3">500 条/ 次</option>
+                                    </select>
+                                </div>
+                            </div>
+{#                            <textarea class="form-control" rows="5" placeholder="填入参数"></textarea>#}
+                        </div>
+                        <div role="tabpanel" class="tab-pane fade" id="db-post">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Host：</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="host" class="form-control" placeholder="host">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Db_type：</label>
+                                <div class="col-sm-8">
+                                    <select name="db_type" class="form-control">
+                                        <option value="1">MySQL</option>
+{#                                        <option value="2">PgSQL</option>#}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Port：</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="port" class="form-control" placeholder="port">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">User：</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="user" class="form-control" placeholder="user">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Password：</label>
+                                <div class="col-sm-8">
+                                    <input type="password" name="password" class="form-control" placeholder="password">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Db_name：</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="db_name" class="form-control" placeholder="name">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Db_table：</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="db_table" class="form-control" placeholder="table">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-default" id="submit">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script type="text/javascript">
+    
+    $(document).ready(function () {
+        $('#transfer-modal a[aria-controls="api-post"]').click(function () {
+            $('#transfer-modal input[name="type"]').val(1);
+        });
+        $('#transfer-modal a[aria-controls="db-post"]').click(function () {
+            $('#transfer-modal input[name="type"]').val(2);
+        });
+        $('#transfer-modal #submit').click(function () {
+            var data = $('#transfer-modal form').serializeArray();
+            var result = {};
+            $.each(data, function (index, item) {
+                result[item['name']] = $.trim(item['value']);
+            });
+            if (result['type'] == 1) {
+                if (!result['api']) {
+                    layer.msg('api必填');
+                    return false;
+                }
+            } else {
+                if (!result['host'] || !result['user'] || !result['password'] || !result['db_name'] || !result['db_table']) {
+                    layer.msg('数据库信息不完整');
+                    return false;
+                }
+            }
+            result['task_id'] = task_id;
+            $.ajax({
+                url: '{% url "dataTransfer" %}',
+                type: 'POST',
+                data: result,
+                success: function (response) {
+                    console.log(response);
+                }
+            });
+        });
+    });
+    
+</script>

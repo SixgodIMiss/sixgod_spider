@@ -86,3 +86,13 @@ class Project(models.Model):
 
     class Meta:
         db_table = 'project'
+
+
+# 运行日志
+class RunLog(models.Model):
+    id = models.Index
+
+    class Meta:
+        db_table = 'run_log'
+
+

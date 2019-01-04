@@ -26,5 +26,6 @@ backend_urlpatterns = [
     url(r'^data/list', dataView.dataList, name='dataList'),
 
     url(r'^data/list', dataView.dataList, name='dataList'),
+    url(r'^data/transfer', dataView.transfer, name='dataTransfer'),
 ]
 

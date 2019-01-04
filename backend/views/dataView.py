@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+import django  # 多进程用
+django.setup()
 from django.http import JsonResponse
 from backend.views import userView
 from backend.models import dataModel, crawlerModel
-import datetime, time
+import datetime, time, json
+import multiprocessing, urllib, urllib2
 
 
 def timeline(request):
@@ -56,7 +59,8 @@ def timeline(request):
 def dataList(request):
     user_id = userView.checkLogin(request)
     post = request.POST
-    crawler_id = post.get('crawler_id', None)
+
+    crawler_id = post.get('crawler_id', 0)
     result = {
         'data': [],
         'status': 'success',
@@ -81,4 +85,58 @@ def dataList(request):
     # print(params)
     result = dataModel.query(params)
     return JsonResponse(result)
+
+
+# 数据迁移
+def transfer(request):
+    userView.checkLogin(request)
+    post = request.POST
+
+    if post.get('type', None) == "1":
+        params = {
+            'api': post.get('api', ''),
+            'format': post.get('format', ''),
+            'per': post.get('per', 10)
+        }
+        # 防止自己调用自己
+        if '/data/transfer' in params['api']:
+            return JsonResponse(params)
+    else:
+        params = {
+            'host': post.get('host', ''),
+            'type': post.get('type', "1"),
+            'port': post.get('post', 3306),
+            'user': post.get('user', ''),
+            'password': post.get('password', ''),
+            'db_name': post.get('db_name', ''),
+            'db_table': post.get('db_table', '')
+        }
+
+    start = multiprocessing.Process(
+        target=transferProcess, kwargs=params
+    )
+    start.daemon = True
+    start.start()
+
+    return JsonResponse(params)
+
+
+def transferProcess(**kwargs):
+    type = kwargs.get('type')
+
+    data = {
+        'crawler_id': 1,
+        'cPage': 1,
+        'pSize': 1
+    }
+    data = urllib.urlencode(data)
+    header_dict = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko',
+                   "Content-Type": "application/x-www-form-urlencoded"}
+    try:
+        req = urllib2.Request(url='http://www.google.com', data=data, headers=header_dict)
+        res = urllib2.urlopen(req, timeout=8)
+        response = res.read()
+    except Exception as e:
+        print(e.args[0])
+    return True
 
