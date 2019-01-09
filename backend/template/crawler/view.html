@@ -190,7 +190,6 @@
             success: function (response) {
                 if (response.msg != '') {
                     layer.alert(response['msg']);
-
                     timer.clear();
                 } else {
                     status = response.status;
@@ -200,7 +199,9 @@
 
                     // 控制几个元素自动刷新
                     if (status == 'stop') {
-                        timer.clear();
+                        setTimeout(function () {
+                            timer.clear();
+                        }, 2000);
                     } else {
                         if (!timer.status) {
                             timer.run();
@@ -208,7 +209,7 @@
                     }
 
                     // 不断请求运行状态
-                    {#setTimeout(checkStatus, 1000);#}
+                    setTimeout(checkStatus, 1000);
                 }
             }
         });
@@ -282,14 +283,17 @@
     };
 
     // 最近的10个时间节点 间隔1秒
-    var getTen = function (now = new Date()) {
+    var getTen = function (now) {
+        if (typeof now == 'undefined') {
+            now = new Date();
+        }
         var ten = [];
         var i = 0;
         while (++i) {
             if (10 < i) {
                 break;
             }
-            var time = new Date(now.getTime()-i*1000);
+            var time = new Date(now.getTime()-i*1000-20000);
             ten.push(time.format('h:mm:ss'));
         }
         return ten.sort();
@@ -297,8 +301,6 @@
 
     // 显示timeliness折线
     var showLine = function (selector, options, i) {
-        options.xAxis.data = getTen();
-
         // 查询一个时间节点的
         var number = 10;
         if (i == 1) {
@@ -310,19 +312,27 @@
             type: 'POST',
             data: {
                 crawler_id: "{{ id }}",
-                deadline: options.xAxis.data[number-1],
+                deadline: getTen()[number-1],
                 number: number
             },
             success: function (response) {
                 var line_data = [];
+                var x = getTen();
                 if (response['status'] == 'success') {
-                    for (var i in response['data']) {
-                        line_data.push(response['data'][i]);
+                    for (var t in x) {
+                        line_data.push(response['data'][x[t]]);
                     }
                 }
 
-                options.series.data = line_data;
-                selector.setOption(options);
+                console.log(line_data);
+                selector.setOption({
+                    xAxis: {
+                        data: getTen()
+                    },
+                    series: {
+                        data: line_data
+                    }
+                });
             }
         });
     };

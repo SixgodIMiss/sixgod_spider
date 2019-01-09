@@ -18,7 +18,7 @@ def timeline(request):
     }
 
     crawler_id = post.get('crawler_id', None)  # 爬虫应用ID
-    deadline = post.get('deadline', datetime.datetime.now())  # 最新时间节点
+    deadline = post.get('deadline', None)  # 最新时间节点
     number = int(post.get('number', 10))  # 时间间隔默认1s
 
     # 验参
@@ -34,12 +34,15 @@ def timeline(request):
 
     # 时间轴的时间节点
     timestamps = []
-    now = datetime.datetime.now()
+    if deadline:
+        deadline = datetime.datetime.now().strftime('%Y-%m-%d')+' '+deadline
+    else:
+        deadline = datetime.datetime.now()
+    now = datetime.datetime.strptime(deadline, '%Y-%m-%d %H:%M:%S')
     for i in range(0, number):
         times = now - datetime.timedelta(hours=0, minutes=0, seconds=(1*i))
         timestamps.append(times.strftime("%Y-%m-%d %H:%M:%S"))
     timestamps.sort()
-    # print(123)
 
     params = {
         'task_id': check_crawler.task_id,
@@ -47,7 +50,8 @@ def timeline(request):
         'number': number
     }
     query = dataModel.timeline(params)
-    # print(query)
+    # print(params)
+
     if query:
         result['status'] = 'success'
     result['data'] = query

@@ -19,16 +19,18 @@ def timeline(params):
         # items = Project.objects.raw(sql)
         # print(params['timestamps'])
 
+        # print(params)
         # 统计每个时间点抓取条数
         for item in items:
+            create_time = item['create_time'].strftime("%H:%M:%S")
             item['create_time'] = item['create_time'].strftime("%Y-%m-%d %H:%M:%S")
-            print(item)
+            # print(item)
 
             if item['create_time'] in params['timestamps']:
-                if data.get(item['create_time'], None) is None:
-                    data[item['create_time']] = 1
+                if data.get(create_time, None) is None:
+                    data[create_time] = 1
                 else:
-                    data[item['create_time']] += 1
+                    data[create_time] += 1
 
     except Exception as e:
         print(e)
