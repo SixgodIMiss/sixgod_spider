@@ -91,8 +91,13 @@ class Project(models.Model):
 # 运行日志
 class RunLog(models.Model):
     id = models.Index
+    task = models.ForeignKey(Task)
+    crawler = models.ForeignKey(Crawler)
+    execute = models.IntegerField('执行操作')
+    result = models.CharField('执行结果')
+    remark = models.CharField('备注')
+    create_time = models.DateTimeField(default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     class Meta:
         db_table = 'run_log'
-
 
