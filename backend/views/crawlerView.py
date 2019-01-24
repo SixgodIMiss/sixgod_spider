@@ -181,7 +181,7 @@ def startProcess(task_id, spiders):
 
     # 另外启动方式
     scrapy_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+'/spider')
-    pid = subprocess.Popen('scrapy crawl '+spiders[0]+' -a task_id='+str(task_id), cwd=scrapy_path).pid
+    pid = subprocess.Popen('scrapy crawl '+spiders[0]+' -a task_id='+str(task_id), cwd=scrapy_path, shell=True).pid
 
     # 将pid绑定task
     task = crawlerModel.Task.objects.get(id=task_id)
