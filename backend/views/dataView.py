@@ -40,7 +40,7 @@ def timeline(request):
         deadline = datetime.datetime.now()
     now = datetime.datetime.strptime(deadline, '%Y-%m-%d %H:%M:%S')
     for i in range(0, number):
-        times = now - datetime.timedelta(hours=0, minutes=0, seconds=(1*i))
+        times = now - datetime.timedelta(hours=0, minutes=0, seconds=(1*i - 10))
         timestamps.append(times.strftime("%Y-%m-%d %H:%M:%S"))
     timestamps.sort()
 
@@ -50,6 +50,7 @@ def timeline(request):
         'number': number
     }
     query = dataModel.timeline(params)
+    # return JsonResponse(params)
     # print(params)
 
     if query:

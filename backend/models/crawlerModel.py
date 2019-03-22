@@ -209,7 +209,6 @@ def taskHandler(crawler_id, active, pid=0):
         result['task'] = crawler.task.id
         result['status'] = finish_status
     except Exception as e:
-        print(e)
         return False
     return result
 
@@ -219,7 +218,7 @@ def taskInfo(crawler_id):
     result = {}
     try:
         crawler = Crawler.objects.get(id=crawler_id)
-        print(crawler_id)
+
         if crawler:
             result = {
                 'id': crawler.id,

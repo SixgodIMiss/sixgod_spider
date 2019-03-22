@@ -170,6 +170,10 @@
                     btn.find('button').addClass('hide');
                     btn.find('button.starting').removeClass('hide');
                     btn.find('button.stop').removeClass('hide');
+
+                    $('#basic-status').text('starting');
+                    $('#basic-num').text(0);
+                    $('#data-list').GM('cleanData');
                     break;
                 case 'running':
                     btn.find('button').addClass('hide');
@@ -229,7 +233,7 @@
             // 计时器
             timer: null,
             // 时间间隔
-            interval: 1000
+            interval: 2000
         },
         // 数据展示
         data: {
@@ -301,6 +305,8 @@
 
     // 显示timeliness折线
     var showLine = function (selector, options, i) {
+        var ten = getTen();
+
         // 查询一个时间节点的
         var number = 10;
         if (i == 1) {
@@ -311,8 +317,8 @@
             url: "{% url 'timeline' %}",
             type: 'POST',
             data: {
-                crawler_id: "{{ id }}",
-                deadline: getTen()[number-1],
+                crawler_id: crawler_id,
+                deadline: ten[ten.length - 1],
                 number: number
             },
             success: function (response) {
@@ -323,16 +329,6 @@
                         line_data.push(response['data'][x[t]]);
                     }
                 }
-
-                console.log(line_data);
-                selector.setOption({
-                    xAxis: {
-                        data: getTen()
-                    },
-                    series: {
-                        data: line_data
-                    }
-                });
             }
         });
     };
@@ -434,7 +430,7 @@
                 alignWithLabel: true
             },
             boundaryGap: true,
-            data: getTen()
+            data: []
         },
         yAxis: {
             type: 'value'
@@ -460,7 +456,7 @@
         ,ajax_data: "{% url 'dataList' %}"
         ,ajax_type: 'POST'
         ,query: {
-            'crawler_id': "{{ id }}"
+            'crawler_id': crawler_id
         }
         ,supportAjaxPage: true
         ,supportMenu: false
