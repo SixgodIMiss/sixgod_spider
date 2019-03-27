@@ -1,5 +1,6 @@
-# sixgod_spider
-爬虫应用管理系统
+## sixgod_spider
 
-### 配置时注意：settings文件
-### pip install Django==1.11 MySQL-Python 
+### 爬虫应用管理系统 ( 开发 in... )
+
+* 测试账号 sixgod
+* 密码 123456

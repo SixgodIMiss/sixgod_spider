@@ -111,7 +111,7 @@
                             if (result['status'] == 'success') {
                                 window.location.href = '/index';
                             } else {
-                                layer.alert(result['msg']);
+                                layer.alert(result['msg'] + '&nbsp; 可能没有该地区爬虫');
                             }
                         }
                     });

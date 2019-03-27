@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
-from backend.views import spiderView, userView, crawlerView, dataView
+from backend.views import spiderView, userView, crawlerView, dataView, logView
 
 backend_urlpatterns = [
     url(r'^$', crawlerView.index, name='index'),
@@ -27,5 +27,7 @@ backend_urlpatterns = [
 
     url(r'^data/list', dataView.dataList, name='dataList'),
     url(r'^data/transfer', dataView.transfer, name='dataTransfer'),
+
+    url(r'^log/operate$', logView.operateList, name='logOperate')
 ]
 

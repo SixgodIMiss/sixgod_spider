@@ -44,6 +44,7 @@ class BasicSpider(scrapy.Spider):
     def close(self, reason):
         model = MysqlModel('master')
         model.update("update task set status = 'stop' WHERE id = %s", self.task_id)
+        model.update("update task set end = '"+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"' WHERE id = %s", self.task_id)
 
         return reason
 

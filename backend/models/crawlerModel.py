@@ -42,7 +42,7 @@ def crawlerList(params):
         items = paginator.page(1)
     except EmptyPage:
         items = paginator.page(paginator.num_pages)
-    result['totals'] = paginator.num_pages
+    result['totals'] = paginator.count
 
     # 格式化
     for item in items:
@@ -97,6 +97,7 @@ def saveCrawler(params):
     province = params['province']
     city = params['city']
     crawler_id = params['crawler_id']
+
     try:
         # 一定要配置有省市，才能将应用和程序对应起来
         spider_arr = []
@@ -104,9 +105,12 @@ def saveCrawler(params):
             return False
         else:
             spiders = Spider.objects.filter(province=province, city=city).values('id')
+
             for spider_id in spiders:
                 spider_arr.append(str(spider_id['id']))
         spider_str = '_'.join(spider_arr)  # 以下划线作分割
+        if spider_str == '':
+            return False
 
         if crawler_id == '':
             # 创建

@@ -10,7 +10,7 @@
         <div class="form">
             <h4>名称</h4>
             <div class="form-group">
-                <input type="text" id="name" placeholder="爬虫程序名，即‘name=?’">
+                <input type="text" id="name" placeholder="爬虫程序名，即“scrapy 中的 name=?”" style="width: 250px;">
             </div>
             <div class="form-group" id="area-select">
                 <h4>地区</h4>
@@ -85,13 +85,8 @@
                     title: '程序'
                 });
                 return false;
-            } else if (!county || county == '') {
-                layer.alert('至少选择一个区县', {
-                    title: '程序'
-                });
-                return false;
             }
-            var area = province+'-'+city+'-'+county;
+            var area = province+'-'+city;
 
             var handle = '';
             if (up == 'create') {
@@ -105,7 +100,7 @@
                 ,btn: ['是', '否']
                 ,yes: function(index){
                     layer.close(index);
-                    var loading = layer.load(1, {
+                    var loading = layer.load(2, {
                         shade: [0.2,'#000'] //0.2透明度的黑色背景
                     });
                     $.ajax({

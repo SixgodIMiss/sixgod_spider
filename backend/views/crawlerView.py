@@ -36,9 +36,10 @@ def crawlerList(request):
         'user_id': user_id,
         'page': int(post.get('cPage', 1)),
         'size': int(post.get('pSize', 20)),
-        'name': str(post.get('crawler_name', None)),
+        'name': post.get('crawler_name', None),
         'status': post.get('status', 0)
     }
+
     result = crawlerModel.crawlerList(params)
     return JsonResponse(result)
 

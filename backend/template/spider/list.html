@@ -43,7 +43,7 @@
                 {
                     key: 'name',
                     text: '名称',
-                    width: '250px',
+                    width: '35%',
                     template: function (nodeData, rowData) {
                         return '<span style="margin-left: 5px; font-size: 16px">'+rowData.name+'</span>';
                     }
@@ -51,8 +51,7 @@
                 {
                     key: 'area',
                     text: '地区',
-                    width: '15%',
-                    align: 'center',
+                    width: '25%',
                     template: function (nodeData, rowData) {
                         return '<span style="margin-left: 5px;">'+rowData.province+'-'+rowData.city+'</span>';
                     }
@@ -61,68 +60,22 @@
                     key: 'user',
                     text: '创建者',
                     align: 'center',
-                    width: '10%'
-                },
-                {
-                    key: 'create_time',
-                    text: '创建时间',
-                    align: 'center',
                     width: '15%'
                 },
                 {
                     key: 'create_time',
                     text: '创建时间',
-                    align: 'center',
-                    width: '15%'
-                },
-                {
-                    key: 'operate',
-                    text: '操作',
-                    template: function (nodeData, rowData) {
-                        var dom = '<div class="operate" data-id="'+rowData.id+'">';
-                        if (rowData.updated == 3) {
-                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
-                            '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
-                            '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
-                            '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                            '<button class="updated btn btn-info btn-sm" disabled>更新中</button>';
-                        } else if (rowData.status == 1) {
-                            dom += '<button class="start btn btn-primary btn-sm hide">启动</button>' +
-                            '<button class="delete btn btn-danger btn-sm hide">删除</button>' +
-                            '<button class="run btn btn-success btn-sm " disabled>运行中</button>' +
-                            '<button class="stop btn btn-warning btn-sm ">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                            '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
-                        } else {
-                            dom += '<button class="start btn btn-primary btn-sm">启动</button>' +
-                            '<button class="delete btn btn-danger btn-sm">删除</button>' +
-                            '<button class="run btn btn-success btn-sm hide" disabled>运行中</button>' +
-                            '<button class="stop btn btn-warning btn-sm hide">停止</button>' +
-                            '<button class="stopping btn btn-warning btn-sm hide" disabled>停止中</button>' +
-                            '<button class="updated btn btn-info btn-sm hide" disabled>更新中</button>';
-                        }
-                        dom += '</div>';
-                        return dom;
-                    }
-                },
+                    align: 'center'
+                }
             ]
-            ,ajax_success: function (response) {
-                $('.operate .start').click(function () {
-                    {#start($(this).parent('.operate'));#}
-                });
-                $('.operate .stop').click(function () {
-                    {#stop($(this).parent('.operate'));#}
-                });
-                $('.operate .delete').click(function () {
-                    {#del($(this).parent('.operate'));#}
-                });
-            }
             ,requestHandler: function(request){
-                {#request.crawler_name = $("input[name='name']").val();#}
-                {#request.status = $("select[name='run-status']").val();#}
+                request.name = $("input[name='name']").val();
                 return request;
             }
+        });
+
+        $('.search-action').click(function () {
+            crawler.GM('refreshGrid');
         });
     });
 </script>

@@ -121,19 +121,19 @@
                 <div class="panel-body">
                     <ul class="nav nav-tabs" role="tablist">
                         <li role="presentation" class="active">
-                            <a href="#run-log" aria-controls="run-log" role="tab" data-toggle="tab">运行</a>
+                            <a href="#operate-log" aria-controls="operate-log" role="tab" data-toggle="tab">操作</a>
                         </li>
                         <li role="presentation">
-                            <a href="#operate-log" aria-controls="operate-log" role="tab" data-toggle="tab">操作</a>
+                            <a href="#run-log" aria-controls="run-log" role="tab" data-toggle="tab">运行</a>
                         </li>
                     </ul>
                     <div style="height: 5px;"></div>
                     <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane active" id="run-log">
-                            <table id="run-log-list" grid-manager="run-log-list"></table>
-                        </div>
-                        <div role="tabpanel" class="tab-pane" id="operate-log">
+                        <div role="tabpanel" class="tab-pane active" id="operate-log">
                             <table id="operate-log-list" grid-manager="operate-log-list"></table>
+                        </div>
+                        <div role="tabpanel" class="tab-pane " id="run-log">
+                            <table id="run-log-list" grid-manager="run-log-list"></table>
                         </div>
                     </div>
                 </div>
@@ -519,7 +519,9 @@
 
     // 日志
     var run_log_table = $('#run-log-list');
-    run_log_table.GM({
+
+    var operate_log_table = $('#operate-log-list');
+    operate_log_table.GM({
         disableCache: true
         ,height: '300px'
         ,pageSize: 20
@@ -530,34 +532,32 @@
         ,supportMenu: false
         ,columnData: [
             {
-                key: 'name',
-                text: 'spider',
-                width: '20%',
+                key: 'task_id',
+                text: '任务',
+                width: '25%'
             },
             {
-                key: 'url',
-                text: '源网址',
-                width: '40%',
+                key: 'execute',
+                text: '执行操作',
+                width: '25%'
             },
             {
-                key: 'status',
-                text: '状态码',
-                width: '10%',
-                align: 'center',
+                key: 'result',
+                text: '结果',
+                width: '25%'
             },
             {
-                key: 'time',
-                text: '时间',
-                align: 'center'
+                key: 'create',
+                text: '执行时间'
             }
         ]
     });
 
-    var operate_log_table = $('#operate-log-list');
-    $('a[aria-controls="operate-log"]').click(function (e) {
+    $('a[aria-controls="run-log"]').click(function (e) {
         e.preventDefault();
         $(this).tab('show');
-        operate_log_table.GM({
+
+        run_log_table.GM({
             disableCache: true
             ,height: '300px'
             ,pageSize: 20
@@ -569,8 +569,24 @@
             ,columnData: [
                 {
                     key: 'name',
-                    text: '名称',
-                    width: '25%'
+                    text: 'spider',
+                    width: '20%',
+                },
+                {
+                    key: 'url',
+                    text: '源网址',
+                    width: '40%',
+                },
+                {
+                    key: 'status',
+                    text: '状态码',
+                    width: '10%',
+                    align: 'center',
+                },
+                {
+                    key: 'time',
+                    text: '时间',
+                    align: 'center'
                 }
             ]
         });
